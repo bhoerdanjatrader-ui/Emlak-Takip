@@ -1,29 +1,10 @@
 {
   "expo": {
-    "name": "deneme-2",
-    "slug": "snack-0c17aaf2-98fa-46b2-8999-69a6d1bc2032",
+    "name": "Emlak Takip",
+    "slug": "emlak-takip",
     "version": "1.0.0",
-    "orientation": "portrait",
-    "icon": "./assets/icon.png",
-    "userInterfaceStyle": "light",
-    "newArchEnabled": true,
-    "splash": {
-      "image": "./assets/splash-icon.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
-    },
-    "ios": {
-      "supportsTablet": true
-    },
     "android": {
-      "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
-      },
-      "edgeToEdgeEnabled": true
-    },
-    "web": {
-      "favicon": "./assets/favicon.png"
+      "package": "com.toco.emlaktakip"
     }
   }
 }
