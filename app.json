@@ -3,8 +3,21 @@
     "name": "Emlak Takip",
     "slug": "emlak-takip",
     "version": "1.0.0",
+    "sdkVersion": "54.0.0",
+    "platforms": [
+      "ios",
+      "android"
+    ],
     "android": {
       "package": "com.toco.emlaktakip"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "bhoers-team-emlak-takip"
+      }
+    },
+    "cli": {
+      "appVersionSource": "remote"
     }
   }
 }
