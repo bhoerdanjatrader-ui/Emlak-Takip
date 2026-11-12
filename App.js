@@ -98,7 +98,6 @@ export default function App() {
     }
   };
 
-  // Uygulama açılışında verileri AsyncStorage'dan güvenle çek
   useEffect(() => {
     const verileriYukle = async () => {
       try {
@@ -125,14 +124,6 @@ export default function App() {
     };
     verileriYukle();
   }, []);
-
-  // Her değişiklikte verileri anında kalıcı olarak diske kaydet
-  useEffect(() => { AsyncStorage.setItem('@toco_hesaplar', JSON.stringify(hesaplar)); }, [hesaplar]);
-  useEffect(() => { AsyncStorage.setItem('@toco_islemler', JSON.stringify(islemGecmisi)); }, [islemGecmisi]);
-  useEffect(() => { AsyncStorage.setItem('@toco_portfoyler', JSON.stringify(portfoyler)); }, [portfoyler]);
-  useEffect(() => { AsyncStorage.setItem('@toco_talepler', JSON.stringify(talepler)); }, [talepler]);
-  useEffect(() => { AsyncStorage.setItem('@toco_krediler', JSON.stringify(krediler)); }, [krediler]);
-  useEffect(() => { AsyncStorage.setItem('@toco_app_theme', theme); }, [theme]);
 
   useEffect(() => {
     let yeniEslesmeler = [];
@@ -218,112 +209,13 @@ export default function App() {
     Alert.alert('Başarılı', 'Uygulama şifreniz güncellendi.');
   };
 
-  const hesapKaydet = () => {
-    if (!yeniHesapAd) return Alert.alert('Hata', 'Hesap adı giriniz.');
-    const bakiyeNum = Number(yeniHesapBakiye) || 0;
-    let yeniListe;
-    if (duzenlenenHesapId) {
-      yeniListe = hesaplar.map(h => h.id === duzenlenenHesapId ? { ...h, ad: yeniHesapAd, bakiye: bakiyeNum } : h);
-      setDuzenlenenHesapId(null);
-    } else {
-      yeniListe = [...hesaplar, { id: Date.now().toString(), ad: yeniHesapAd, bakiye: bakiyeNum }];
-    }
-    setHesaplar(yeniListe);
-    AsyncStorage.setItem('@toco_hesaplar', JSON.stringify(yeniListe));
-    setYeniHesapAd(''); setYeniHesapBakiye('');
+  const temaDegistir = async (yeniTema) => {
+    setTheme(yeniTema);
+    await AsyncStorage.setItem('@toco_app_theme', yeniTema);
   };
 
-  const hesapSil = (id) => {
-    const yeniListe = hesaplar.filter(h => h.id !== id);
-    setHesaplar(yeniListe);
-    AsyncStorage.setItem('@toco_hesaplar', JSON.stringify(yeniListe));
-  };
-
-  const hesapDuzenleBaslat = (hesap) => {
-    setDuzenlenenHesapId(hesap.id);
-    setYeniHesapAd(hesap.ad);
-    setYeniHesapBakiye(hesap.bakiye.toString());
-  };
-
-  const krediKaydet = () => {
-    if (!krediBanka || !krediTutar || !krediOdemeGunu) return Alert.alert('Hata', 'Banka adı, tutar ve ödeme günü zorunludur.');
-    const yeniKredi = {
-      id: Date.now().toString(),
-      banka: krediBanka,
-      tutar: Number(krediTutar) || 0,
-      odemeGunu: krediOdemeGunu,
-      guncelTaksit: krediGuncelTaksit || '1',
-      toplamTaksit: krediToplamTaksit || '1'
-    };
-    const yeniListe = [yeniKredi, ...krediler];
-    setKrediler(yeniListe);
-    AsyncStorage.setItem('@toco_krediler', JSON.stringify(yeniListe));
-    setKrediBanka(''); setKrediTutar(''); setKrediOdemeGunu(''); setKrediGuncelTaksit(''); setKrediToplamTaksit('');
-  };
-
-  const krediErkenKapat = (id) => {
-    Alert.alert(
-      'Krediyi Kapat',
-      'Bu krediyi erken kapatarak borç yükümlülüğünden kaldırmak istiyor musunuz?',
-      [
-        { text: 'Vazgeç', style: 'cancel' },
-        { 
-          text: 'Evet, Kapat', 
-          onPress: () => {
-            const yeniListe = krediler.filter(k => k.id !== id);
-            setKrediler(yeniListe);
-            AsyncStorage.setItem('@toco_krediler', JSON.stringify(yeniListe));
-          } 
-        }
-      ]
-    );
-  };
-
-  const islemKaydet = () => {
-    if (!tutar || !aciklama) return Alert.alert('Hata', 'Tutar ve açıklama zorunludur.');
-    const sayiTutar = Number(tutar);
-    const guncelHesaplar = hesaplar.map(h => {
-      if (h.ad === seciliHesap) {
-        const yeniBakiye = islemTipi === 'gelir' ? h.bakiye + sayiTutar : h.bakiye - sayiTutar;
-        return { ...h, bakiye: yeniBakiye };
-      }
-      return h;
-    });
-    setHesaplar(guncelHesaplar);
-    AsyncStorage.setItem('@toco_hesaplar', JSON.stringify(guncelHesaplar));
-
-    const yeniIslem = {
-      id: Date.now().toString(),
-      tip: islemTipi,
-      tutar: sayiTutar,
-      aciklama,
-      hesap: seciliHesap,
-      tarih: new Date().toLocaleDateString('tr-TR')
-    };
-    const yeniGecmis = [yeniIslem, ...islemGecmisi];
-    setIslemGecmisi(yeniGecmis);
-    AsyncStorage.setItem('@toco_islemler', JSON.stringify(yeniGecmis));
-
-    setTutar(''); setAciklama('');
-  };
-
-  const islemSil = (id, tip, tutarVal, hesapAdi) => {
-    const guncelHesaplar = hesaplar.map(h => {
-      if (h.ad === hesapAdi) {
-        const geriBakiye = tip === 'gelir' ? h.bakiye - tutarVal : h.bakiye + tutarVal;
-        return { ...h, bakiye: geriBakiye };
-      }
-      return h;
-    });
-    setHesaplar(guncelHesaplar);
-    AsyncStorage.setItem('@toco_hesaplar', JSON.stringify(guncelHesaplar));
-
-    const yeniGecmis = islemGecmisi.filter(i => i.id !== id);
-    setIslemGecmisi(yeniGecmis);
-    AsyncStorage.setItem('@toco_islemler', JSON.stringify(yeniGecmis));
-  };
-
-  const portfoyKaydet = () => {
+  // PORTFÖY KAYIT & GÜNCELLEME (Kati Kalıcılık Garantili)
+  const portfoyKaydet = async () => {
     if (!pBaslik || !pFiyat || !pKonum) return Alert.alert('Hata', 'Başlık, fiyat ve konum zorunludur.');
     const fiyatNum = Number(pFiyat);
     let yeniListe;
@@ -335,14 +227,14 @@ export default function App() {
       yeniListe = [yeniP, ...portfoyler];
     }
     setPortfoyler(yeniListe);
-    AsyncStorage.setItem('@toco_portfoyler', JSON.stringify(yeniListe));
+    await AsyncStorage.setItem('@toco_portfoyler', JSON.stringify(yeniListe));
     setPBaslik(''); setPFiyat(''); setPKonum(''); setPAciklama('');
   };
 
-  const portfoySil = (id) => {
+  const portfoySil = async (id) => {
     const yeniListe = portfoyler.filter(p => p.id !== id);
     setPortfoyler(yeniListe);
-    AsyncStorage.setItem('@toco_portfoyler', JSON.stringify(yeniListe));
+    await AsyncStorage.setItem('@toco_portfoyler', JSON.stringify(yeniListe));
   };
 
   const portfoyDuzenleBaslat = (p) => {
@@ -350,7 +242,8 @@ export default function App() {
     setPBaslik(p.baslik); setPTip(p.tip); setPCategory(p.category || 'Konut'); setPFiyat(p.fiyat.toString()); setPKonum(p.konum); setPAciklama(p.aciklama);
   };
 
-  const talepKaydet = () => {
+  // TALEPLER
+  const talepKaydet = async () => {
     if (!tMusteri || !tMaxFiyat || !tKonum) return Alert.alert('Hata', 'Müşteri, bütçe ve bölge zorunludur.');
     const busteriMax = Number(tMaxFiyat);
     let yeniListe;
@@ -362,19 +255,121 @@ export default function App() {
       yeniListe = [yeniT, ...talepler];
     }
     setTalepler(yeniListe);
-    AsyncStorage.setItem('@toco_talepler', JSON.stringify(yeniListe));
+    await AsyncStorage.setItem('@toco_talepler', JSON.stringify(yeniListe));
     setTMusteri(''); setTMaxFiyat(''); setTAranan(''); setTKonum('');
   };
 
-  const talepSil = (id) => {
+  const talepSil = async (id) => {
     const yeniListe = talepler.filter(t => t.id !== id);
     setTalepler(yeniListe);
-    AsyncStorage.setItem('@toco_talepler', JSON.stringify(yeniListe));
+    await AsyncStorage.setItem('@toco_talepler', JSON.stringify(yeniListe));
   };
 
   const talepDuzenleBaslat = (t) => {
     setDuzenlenenTalepId(t.id);
     setTMusteri(t.musteri); setTTip(t.tip); setTCategory(t.category || 'Konut'); setTMaxFiyat(t.maxFiyat.toString()); setTAranan(t.aranan); setTKonum(t.konum);
+  };
+
+  // HESAPLAR & KREDİLER & İŞLEMLER
+  const hesapKaydet = async () => {
+    if (!yeniHesapAd) return Alert.alert('Hata', 'Hesap adı giriniz.');
+    const bakiyeNum = Number(yeniHesapBakiye) || 0;
+    let yeniListe;
+    if (duzenlenenHesapId) {
+      yeniListe = hesaplar.map(h => h.id === duzenlenenHesapId ? { ...h, ad: yeniHesapAd, bakiye: bakiyeNum } : h);
+      setDuzenlenenHesapId(null);
+    } else {
+      yeniListe = [...hesaplar, { id: Date.now().toString(), ad: yeniHesapAd, bakiye: bakiyeNum }];
+    }
+    setHesaplar(yeniListe);
+    await AsyncStorage.setItem('@toco_hesaplar', JSON.stringify(yeniListe));
+    setYeniHesapAd(''); setYeniHesapBakiye('');
+  };
+
+  const hesapSil = async (id) => {
+    const yeniListe = hesaplar.filter(h => h.id !== id);
+    setHesaplar(yeniListe);
+    await AsyncStorage.setItem('@toco_hesaplar', JSON.stringify(yeniListe));
+  };
+
+  const hesapDuzenleBaslat = (hesap) => {
+    setDuzenlenenHesapId(hesap.id);
+    setYeniHesapAd(hesap.ad);
+    setYeniHesapBakiye(hesap.bakiye.toString());
+  };
+
+  const krediKaydet = async () => {
+    if (!krediBanka || !krediTutar || !krediOdemeGunu) return Alert.alert('Hata', 'Banka adı, tutar ve ödeme günü zorunludur.');
+    const yeniKredi = {
+      id: Date.now().toString(),
+      banka: krediBanka,
+      tutar: Number(krediTutar) || 0,
+      odemeGunu: krediOdemeGunu,
+      guncelTaksit: krediGuncelTaksit || '1',
+      toplamTaksit: krediToplamTaksit || '1'
+    };
+    const yeniListe = [yeniKredi, ...krediler];
+    setKrediler(yeniListe);
+    await AsyncStorage.setItem('@toco_krediler', JSON.stringify(yeniListe));
+    setKrediBanka(''); setKrediTutar(''); setKrediOdemeGunu(''); setKrediGuncelTaksit(''); setKrediToplamTaksit('');
+  };
+
+  const krediErkenKapat = (id) => {
+    Alert.alert('Krediyi Kapat', 'Bu krediyi erken kapatarak borç yükümlülüğünden kaldırmak istiyor musunuz?', [
+      { text: 'Vazgeç', style: 'cancel' },
+      { 
+        text: 'Evet, Kapat', 
+        onPress: async () => {
+          const yeniListe = krediler.filter(k => k.id !== id);
+          setKrediler(yeniListe);
+          await AsyncStorage.setItem('@toco_krediler', JSON.stringify(yeniListe));
+        } 
+      }
+    ]);
+  };
+
+  const islemKaydet = async () => {
+    if (!tutar || !aciklama) return Alert.alert('Hata', 'Tutar ve açıklama zorunludur.');
+    const sayiTutar = Number(tutar);
+    const guncelHesaplar = hesaplar.map(h => {
+      if (h.ad === seciliHesap) {
+        const yeniBakiye = islemTipi === 'gelir' ? h.bakiye + sayiTutar : h.bakiye - sayiTutar;
+        return { ...h, bakiye: yeniBakiye };
+      }
+      return h;
+    });
+    setHesaplar(guncelHesaplar);
+    await AsyncStorage.setItem('@toco_hesaplar', JSON.stringify(guncelHesaplar));
+
+    const yeniIslem = {
+      id: Date.now().toString(),
+      tip: islemTipi,
+      tutar: sayiTutar,
+      aciklama,
+      hesap: seciliHesap,
+      tarih: new Date().toLocaleDateString('tr-TR')
+    };
+    const yeniGecmis = [yeniIslem, ...islemGecmisi];
+    setIslemGecmisi(yeniGecmis);
+    await AsyncStorage.setItem('@toco_islemler', JSON.stringify(yeniGecmis));
+
+    setTutar(''); setAciklama('');
+  };
+
+  const islemSil = async (id, tip, tutarVal, hesapAdi) => {
+    const guncelHesaplar = hesaplar.map(h => {
+      if (h.ad === hesapAdi) {
+        const geriBakiye = tip === 'gelir' ? h.bakiye - tutarVal : h.bakiye + tutarVal;
+        return { ...h, bakiye: geriBakiye };
+      }
+      return h;
+    });
+    setHesaplar(guncelHesaplar);
+    await AsyncStorage.setItem('@toco_hesaplar', JSON.stringify(guncelHesaplar));
+
+    const yeniGecmis = islemGecmisi.filter(i => i.id !== id);
+    setIslemGecmisi(yeniGecmis);
+    await AsyncStorage.setItem('@toco_islemler', JSON.stringify(yeniGecmis));
   };
 
   const dynStyles = getDynamicStyles(isDark);
@@ -418,7 +413,7 @@ export default function App() {
 
   return (
     <SafeAreaView style={dynStyles.container}>
-      <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} backgroundColor={isDark ? '#0b0f19' : '#e5e7eb'} />
+      <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} backgroundColor={isDark ? '#121214' : '#f3f4f6'} />
       
       <View style={dynStyles.header}>
         <View style={styles.titleBox}>
@@ -452,7 +447,7 @@ export default function App() {
           <View>
             <View style={dynStyles.formCard}>
               <Text style={dynStyles.cardTitle}>{duzenlenenPortfoyId ? 'Portföy Düzenle' : 'Portföy Ekle'}</Text>
-              <TextInput style={dynStyles.input} placeholder="Portföy Başlığı" placeholderTextColor={isDark ? '#a1a1aa' : '#6b7280'} value={pBaslik} onChangeText={setPBaslik} />
+              <TextInput style={dynStyles.input} placeholder="Portföy Başlığı" placeholderTextColor={isDark ? '#9ca3af' : '#9ca3af'} value={pBaslik} onChangeText={setPBaslik} />
               
               <Text style={dynStyles.labelSub}>Kategori:</Text>
               <View style={styles.gridSelector}>
@@ -467,20 +462,20 @@ export default function App() {
               <View style={styles.tipRow}>
                 {['Satılık', 'Kiralık', 'Kat Karşılığı'].map(st => (
                   <TouchableOpacity key={st} style={[dynStyles.tipBtn, pTip === st && dynStyles.gelirActive]} onPress={() => setPTip(st)}>
-                    <Text style={dynStyles.tipText}>{st}</Text>
+                    <Text style={[dynStyles.tipText, pTip === st && dynStyles.tipTextActive]}>{st}</Text>
                   </TouchableOpacity>
                 ))}
               </View>
 
-              <TextInput style={dynStyles.input} placeholder="Fiyat (TL)" placeholderTextColor={isDark ? '#a1a1aa' : '#6b7280'} keyboardType="default" value={pFiyat} onChangeText={setPFiyat} />
-              <TextInput style={dynStyles.input} placeholder="Konum / Bölge" placeholderTextColor={isDark ? '#a1a1aa' : '#6b7280'} value={pKonum} onChangeText={setPKonum} />
-              <TextInput style={[dynStyles.input, { height: 70 }]} placeholder="Açıklama" placeholderTextColor={isDark ? '#a1a1aa' : '#6b7280'} multiline value={pAciklama} onChangeText={setPAciklama} />
+              <TextInput style={dynStyles.input} placeholder="Fiyat (TL)" placeholderTextColor={isDark ? '#9ca3af' : '#9ca3af'} keyboardType="default" value={pFiyat} onChangeText={setPFiyat} />
+              <TextInput style={dynStyles.input} placeholder="Konum / Bölge" placeholderTextColor={isDark ? '#9ca3af' : '#9ca3af'} value={pKonum} onChangeText={setPKonum} />
+              <TextInput style={[dynStyles.input, { height: 70 }]} placeholder="Açıklama" placeholderTextColor={isDark ? '#9ca3af' : '#9ca3af'} multiline value={pAciklama} onChangeText={setPAciklama} />
               
               <TouchableOpacity style={styles.saveBtn} onPress={portfoyKaydet}>
                 <Text style={styles.saveBtnText}>{duzenlenenPortfoyId ? 'Güncelle' : 'Kaydet'}</Text>
               </TouchableOpacity>
               {duzenlenenPortfoyId && (
-                <TouchableOpacity style={[styles.saveBtn, {backgroundColor: '#374151', marginTop: 8}]} onPress={() => { setDuzenlenenPortfoyId(null); setPBaslik(''); setPFiyat(''); setPKonum(''); setPAciklama(''); }}>
+                <TouchableOpacity style={[styles.saveBtn, {backgroundColor: '#4b5563', marginTop: 8}]} onPress={() => { setDuzenlenenPortfoyId(null); setPBaslik(''); setPFiyat(''); setPKonum(''); setPAciklama(''); }}>
                   <Text style={styles.saveBtnText}>İptal</Text>
                 </TouchableOpacity>
               )}
@@ -490,7 +485,7 @@ export default function App() {
               <TextInput 
                 style={dynStyles.searchInput} 
                 placeholder="🔍 Portföy ara (Başlık, bölge)..." 
-                placeholderTextColor={isDark ? '#a1a1aa' : '#6b7280'}
+                placeholderTextColor={isDark ? '#9ca3af' : '#9ca3af'}
                 value={pSearchQuery}
                 onChangeText={setPSearchQuery}
               />
@@ -526,7 +521,7 @@ export default function App() {
                         <Text style={[styles.listBadge, {backgroundColor: '#6A1B29'}]}>{p.tip}</Text>
                       </View>
                     </View>
-                    <Text style={dynStyles.listSub}>📍 {p.konum} | 💰 {p.fiyat.toLocaleString()} TL</Text>
+                    <Text style={dynStyles.listSub}>📍 {p.konum} | 💰 {Number(p.fiyat || 0).toLocaleString()} TL</Text>
                     {p.aciklama ? <Text style={dynStyles.listDesc}>{p.aciklama}</Text> : null}
                   </View>
                   <View style={styles.actionColumn}>
@@ -547,7 +542,7 @@ export default function App() {
           <View>
             <View style={dynStyles.formCard}>
               <Text style={dynStyles.cardTitle}>{duzenlenenTalepId ? 'Talep Düzenle' : 'Talep Ekle'}</Text>
-              <TextInput style={dynStyles.input} placeholder="Müşteri Adı" placeholderTextColor={isDark ? '#a1a1aa' : '#6b7280'} value={tMusteri} onChangeText={setTMusteri} />
+              <TextInput style={dynStyles.input} placeholder="Müşteri Adı" placeholderTextColor={isDark ? '#9ca3af' : '#9ca3af'} value={tMusteri} onChangeText={setTMusteri} />
               
               <Text style={dynStyles.labelSub}>Kategori:</Text>
               <View style={styles.gridSelector}>
@@ -562,20 +557,20 @@ export default function App() {
               <View style={styles.tipRow}>
                 {['Satılık', 'Kiralık', 'Kat Karşılığı'].map(st => (
                   <TouchableOpacity key={st} style={[styles.tipBtn, tTip === st && dynStyles.gelirActive]} onPress={() => setTTip(st)}>
-                    <Text style={styles.tipText}>{st}</Text>
+                    <Text style={[styles.tipText, tTip === st && dynStyles.tipTextActive]}>{st}</Text>
                   </TouchableOpacity>
                 ))}
               </View>
 
-              <TextInput style={dynStyles.input} placeholder="Max Bütçe (TL)" placeholderTextColor={isDark ? '#a1a1aa' : '#6b7280'} keyboardType="default" value={tMaxFiyat} onChangeText={setTMaxFiyat} />
-              <TextInput style={dynStyles.input} placeholder="Aranan Gayrimenkul" placeholderTextColor={isDark ? '#a1a1aa' : '#6b7280'} value={tAranan} onChangeText={setTAranan} />
-              <TextInput style={dynStyles.input} placeholder="Bölge" placeholderTextColor={isDark ? '#a1a1aa' : '#6b7280'} value={tKonum} onChangeText={setTKonum} />
+              <TextInput style={dynStyles.input} placeholder="Max Bütçe (TL)" placeholderTextColor={isDark ? '#9ca3af' : '#9ca3af'} keyboardType="default" value={tMaxFiyat} onChangeText={setTMaxFiyat} />
+              <TextInput style={dynStyles.input} placeholder="Aranan Gayrimenkul" placeholderTextColor={isDark ? '#9ca3af' : '#9ca3af'} value={tAranan} onChangeText={setTAranan} />
+              <TextInput style={dynStyles.input} placeholder="Bölge" placeholderTextColor={isDark ? '#9ca3af' : '#9ca3af'} value={tKonum} onChangeText={setTKonum} />
 
               <TouchableOpacity style={styles.saveBtn} onPress={talepKaydet}>
                 <Text style={styles.saveBtnText}>{duzenlenenTalepId ? 'Güncelle' : 'Kaydet'}</Text>
               </TouchableOpacity>
               {duzenlenenTalepId && (
-                <TouchableOpacity style={[styles.saveBtn, {backgroundColor: '#374151', marginTop: 8}]} onPress={() => { setDuzenlenenTalepId(null); setTMusteri(''); setTMaxFiyat(''); setTAranan(''); setTKonum(''); }}>
+                <TouchableOpacity style={[styles.saveBtn, {backgroundColor: '#4b5563', marginTop: 8}]} onPress={() => { setDuzenlenenTalepId(null); setTMusteri(''); setTMaxFiyat(''); setTAranan(''); setTKonum(''); }}>
                   <Text style={styles.saveBtnText}>İptal</Text>
                 </TouchableOpacity>
               )}
@@ -585,23 +580,23 @@ export default function App() {
               <TextInput 
                 style={dynStyles.searchInput} 
                 placeholder="🔍 Talep ara (Müşteri, bölge)..." 
-                placeholderTextColor={isDark ? '#a1a1aa' : '#6b7280'}
+                placeholderTextColor={isDark ? '#9ca3af' : '#9ca3af'}
                 value={tSearchQuery}
                 onChangeText={setTSearchQuery}
               />
               <Text style={dynStyles.filterLabelHeader}>Kategoriye Göre Filtrele:</Text>
               <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chipRow}>
                 {['TÜMÜ', 'Konut', 'Arsa', 'İş Yeri', 'Zeytinlik/Tarla'].map(cat => (
-                  <TouchableOpacity key={cat} onPress={() => setTSelectedCategory(cat)} style={[styles.chip, tSelectedCategory === cat && styles.chipActive]}>
-                    <Text style={[styles.chipText, tSelectedCategory === cat && styles.chipTextActive]}>{cat}</Text>
+                  <TouchableOpacity key={cat} onPress={() => setTSelectedCategory(cat)} style={[dynStyles.chip, tSelectedCategory === cat && dynStyles.chipActive]}>
+                    <Text style={[dynStyles.chipText, tSelectedCategory === cat && dynStyles.chipTextActive]}>{cat}</Text>
                   </TouchableOpacity>
                 ))}
               </ScrollView>
               <Text style={dynStyles.filterLabelHeader}>İşlem Tipine Göre:</Text>
               <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chipRow}>
                 {['TÜMÜ', 'Satılık', 'Kiralık', 'Kat Karşılığı'].map(st => (
-                  <TouchableOpacity key={st} onPress={() => setTSelectedStatus(st)} style={[styles.subChip, tSelectedStatus === st && styles.subChipActive]}>
-                    <Text style={[styles.subChipText, tSelectedStatus === st && styles.subChipTextActive]}>{st}</Text>
+                  <TouchableOpacity key={st} onPress={() => setTSelectedStatus(st)} style={[dynStyles.subChip, tSelectedStatus === st && dynStyles.subChipActive]}>
+                    <Text style={[dynStyles.subChipText, tSelectedStatus === st && dynStyles.subChipTextActive]}>{st}</Text>
                   </TouchableOpacity>
                 ))}
               </ScrollView>
@@ -622,7 +617,7 @@ export default function App() {
                       </View>
                     </View>
                     <Text style={dynStyles.listSub}>🔍 {talep.aranan} | 📍 {talep.konum}</Text>
-                    <Text style={dynStyles.listDesc}>Max Bütçe: {talep.maxFiyat.toLocaleString()} TL</Text>
+                    <Text style={dynStyles.listDesc}>Max Bütçe: {Number(talep.maxFiyat || 0).toLocaleString()} TL</Text>
                   </View>
                   <View style={styles.actionColumn}>
                     <TouchableOpacity style={styles.iconBtnEdit} onPress={() => talepDuzenleBaslat(talep)}><Text style={styles.iconText}>✏️</Text></TouchableOpacity>
@@ -693,12 +688,12 @@ export default function App() {
 
             <View style={dynStyles.formCard}>
               <Text style={dynStyles.cardTitle}>Yeni Kredi / Borç Ekle</Text>
-              <TextInput style={dynStyles.input} placeholder="Banka Adı / Kredi Türü" placeholderTextColor={isDark ? '#a1a1aa' : '#6b7280'} value={krediBanka} onChangeText={setKrediBanka} />
-              <TextInput style={dynStyles.input} placeholder="Kalan Toplam Borç (TL)" placeholderTextColor={isDark ? '#a1a1aa' : '#6b7280'} keyboardType="default" value={krediTutar} onChangeText={setKrediTutar} />
-              <TextInput style={dynStyles.input} placeholder="Ödeme Günü (Örn: 15)" placeholderTextColor={isDark ? '#a1a1aa' : '#6b7280'} keyboardType="default" value={krediOdemeGunu} onChangeText={setKrediOdemeGunu} />
+              <TextInput style={dynStyles.input} placeholder="Banka Adı / Kredi Türü" placeholderTextColor={isDark ? '#9ca3af' : '#9ca3af'} value={krediBanka} onChangeText={setKrediBanka} />
+              <TextInput style={dynStyles.input} placeholder="Kalan Toplam Borç (TL)" placeholderTextColor={isDark ? '#9ca3af' : '#9ca3af'} keyboardType="default" value={krediTutar} onChangeText={setKrediTutar} />
+              <TextInput style={dynStyles.input} placeholder="Ödeme Günü (Örn: 15)" placeholderTextColor={isDark ? '#9ca3af' : '#9ca3af'} keyboardType="default" value={krediOdemeGunu} onChangeText={setKrediOdemeGunu} />
               <View style={{flexDirection: 'row', gap: 10}}>
-                <TextInput style={[dynStyles.input, {flex: 1}]} placeholder="Kaçıncı Taksit (Örn: 5)" placeholderTextColor={isDark ? '#a1a1aa' : '#6b7280'} keyboardType="default" value={krediGuncelTaksit} onChangeText={setKrediGuncelTaksit} />
-                <TextInput style={[dynStyles.input, {flex: 1}]} placeholder="Toplam Taksit (Örn: 36)" placeholderTextColor={isDark ? '#a1a1aa' : '#6b7280'} keyboardType="default" value={krediToplamTaksit} onChangeText={setKrediToplamTaksit} />
+                <TextInput style={[dynStyles.input, {flex: 1}]} placeholder="Kaçıncı Taksit (Örn: 5)" placeholderTextColor={isDark ? '#9ca3af' : '#9ca3af'} keyboardType="default" value={krediGuncelTaksit} onChangeText={setKrediGuncelTaksit} />
+                <TextInput style={[dynStyles.input, {flex: 1}]} placeholder="Toplam Taksit (Örn: 36)" placeholderTextColor={isDark ? '#9ca3af' : '#9ca3af'} keyboardType="default" value={krediToplamTaksit} onChangeText={setKrediToplamTaksit} />
               </View>
               <TouchableOpacity style={styles.saveBtn} onPress={krediKaydet}>
                 <Text style={styles.saveBtnText}>Krediyi Kaydet</Text>
@@ -721,8 +716,8 @@ export default function App() {
 
             <View style={dynStyles.formCard}>
               <Text style={dynStyles.cardTitle}>{duzenlenenHesapId ? 'Hesap Düzenle' : 'Yeni Hesap Ekle'}</Text>
-              <TextInput style={dynStyles.input} placeholder="Hesap Adı" placeholderTextColor={isDark ? '#a1a1aa' : '#6b7280'} value={yeniHesapAd} onChangeText={setYeniHesapAd} />
-              <TextInput style={dynStyles.input} placeholder="Başlangıç Bakiyesi (Örn: -500 veya 1000)" placeholderTextColor={isDark ? '#a1a1aa' : '#6b7280'} keyboardType="default" value={yeniHesapBakiye} onChangeText={setYeniHesapBakiye} />
+              <TextInput style={dynStyles.input} placeholder="Hesap Adı" placeholderTextColor={isDark ? '#9ca3af' : '#9ca3af'} value={yeniHesapAd} onChangeText={setYeniHesapAd} />
+              <TextInput style={dynStyles.input} placeholder="Başlangıç Bakiyesi (Örn: -500 veya 1000)" placeholderTextColor={isDark ? '#9ca3af' : '#9ca3af'} keyboardType="default" value={yeniHesapBakiye} onChangeText={setYeniHesapBakiye} />
               <TouchableOpacity style={styles.saveBtn} onPress={hesapKaydet}>
                 <Text style={styles.saveBtnText}>{duzenlenenHesapId ? 'Güncelle' : 'Kaydet'}</Text>
               </TouchableOpacity>
@@ -731,11 +726,15 @@ export default function App() {
             <View style={dynStyles.formCard}>
               <Text style={dynStyles.cardTitle}>Gelir / Gider Ekle</Text>
               <View style={styles.tipRow}>
-                <TouchableOpacity style={[styles.tipBtn, islemTipi === 'gelir' && dynStyles.gelirActive]} onPress={() => setIslemTipi('gelir')}><Text style={styles.tipText}>Gelir</Text></TouchableOpacity>
-                <TouchableOpacity style={[styles.tipBtn, islemTipi === 'gider' && dynStyles.giderActive]} onPress={() => setIslemTipi('gider')}><Text style={styles.tipText}>Gider</Text></TouchableOpacity>
+                <TouchableOpacity style={[styles.tipBtn, islemTipi === 'gelir' && dynStyles.gelirActive]} onPress={() => setIslemTipi('gelir')}>
+                  <Text style={[styles.tipText, islemTipi === 'gelir' && dynStyles.tipTextActive]}>Gelir</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={[styles.tipBtn, islemTipi === 'gider' && dynStyles.gelirActive]} onPress={() => setIslemTipi('gider')}>
+                  <Text style={[styles.tipText, islemTipi === 'gider' && dynStyles.tipTextActive]}>Gider</Text>
+                </TouchableOpacity>
               </View>
-              <TextInput style={dynStyles.input} placeholder="Tutar (TL)" placeholderTextColor={isDark ? '#a1a1aa' : '#6b7280'} keyboardType="default" value={tutar} onChangeText={setTutar} />
-              <TextInput style={dynStyles.input} placeholder="Açıklama" placeholderTextColor={isDark ? '#a1a1aa' : '#6b7280'} value={aciklama} onChangeText={setAciklama} />
+              <TextInput style={dynStyles.input} placeholder="Tutar (TL)" placeholderTextColor={isDark ? '#9ca3af' : '#9ca3af'} keyboardType="default" value={tutar} onChangeText={setTutar} />
+              <TextInput style={dynStyles.input} placeholder="Açıklama" placeholderTextColor={isDark ? '#9ca3af' : '#9ca3af'} value={aciklama} onChangeText={setAciklama} />
               <TouchableOpacity style={styles.saveBtn} onPress={islemKaydet}>
                 <Text style={styles.saveBtnText}>Kaydet</Text>
               </TouchableOpacity>
@@ -773,11 +772,11 @@ export default function App() {
               <Text style={dynStyles.cardTitle}>🎨 Görünüm & Tema</Text>
               <Text style={dynStyles.labelSub}>Uygulama Tema Modu:</Text>
               <View style={styles.tipRow}>
-                <TouchableOpacity style={[styles.tipBtn, isDark && dynStyles.gelirActive]} onPress={() => setTheme('dark')}>
-                  <Text style={styles.tipText}>Karanlık Mod 🌙</Text>
+                <TouchableOpacity style={[styles.tipBtn, isDark && dynStyles.gelirActive]} onPress={() => temaDegistir('dark')}>
+                  <Text style={[styles.tipText, isDark && dynStyles.tipTextActive]}>Karanlık Mod 🌙</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={[styles.tipBtn, !isDark && dynStyles.gelirActive]} onPress={() => setTheme('light')}>
-                  <Text style={styles.tipText}>Aydınlık Mod ☀️</Text>
+                <TouchableOpacity style={[styles.tipBtn, !isDark && dynStyles.gelirActive]} onPress={() => temaDegistir('light')}>
+                  <Text style={[styles.tipText, !isDark && dynStyles.tipTextActive]}>Aydınlık Mod ☀️</Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -789,7 +788,7 @@ export default function App() {
                   <TextInput
                     style={dynStyles.input}
                     placeholder="Yeni 4 Haneli PIN Şifre"
-                    placeholderTextColor={isDark ? '#a1a1aa' : '#6b7280'}
+                    placeholderTextColor={isDark ? '#9ca3af' : '#9ca3af'}
                     secureTextEntry
                     keyboardType="numeric"
                     value={yeniPinInput}
@@ -798,12 +797,12 @@ export default function App() {
                   <TouchableOpacity style={styles.saveBtn} onPress={yeniPinKaydet}>
                     <Text style={styles.saveBtnText}>Yeni Şifreyi Kaydet</Text>
                   </TouchableOpacity>
-                  <TouchableOpacity style={[styles.saveBtn, {backgroundColor: '#374151', marginTop: 8}]} onPress={() => setIslemModu('giris')}>
+                  <TouchableOpacity style={[styles.saveBtn, {backgroundColor: '#4b5563', marginTop: 8}]} onPress={() => setIslemModu('giris')}>
                     <Text style={styles.saveBtnText}>İptal</Text>
                   </TouchableOpacity>
                 </View>
               ) : (
-                <TouchableOpacity style={[styles.saveBtn, {backgroundColor: '#6A1B29'}]} onPress={() => setIslemModu('pinBelirle')}>
+                <TouchableOpacity style={styles.saveBtn} onPress={() => setIslemModu('pinBelirle')}>
                   <Text style={styles.saveBtnText}>Uygulama Şifresini (PIN) Değiştir</Text>
                 </TouchableOpacity>
               )}
@@ -820,57 +819,59 @@ export default function App() {
   );
 }
 
-// Karanlık temada hafif neon parıltı (textShadow) ve yüksek kontrastlı beyaz yazı renkleri
+// Net, Modern ve Yüksek Kontrastlı Dinamik Renk Paleti (Sadece logo vişne rengi)
 const getDynamicStyles = (isDark) => StyleSheet.create({
   container: { flex: 1, backgroundColor: isDark ? '#121214' : '#f3f4f6' },
   lockContainer: { flex: 1, backgroundColor: isDark ? '#121214' : '#f3f4f6', justifyContent: 'center', alignItems: 'center', padding: 20 },
   lockCard: { width: '100%', maxWidth: 360, backgroundColor: isDark ? '#18181b' : '#ffffff', padding: 24, borderRadius: 16, alignItems: 'center', borderWidth: 1, borderColor: isDark ? '#27272a' : '#e5e7eb' },
-  lockSubText: { color: isDark ? '#f3f4f6' : '#4b5563', fontSize: 13, marginVertical: 15, fontWeight: '600' },
-  biometricBtn: { backgroundColor: isDark ? '#27272a' : '#e5e7eb', width: '100%', padding: 14, borderRadius: 10, alignItems: 'center', marginBottom: 15, borderWidth: 1, borderColor: isDark ? '#3f3f46' : '#d1d5db' },
-  biometricText: { color: isDark ? '#ffffff' : '#1f2937', fontWeight: 'bold', fontSize: 14, textShadowColor: isDark ? 'rgba(255, 255, 255, 0.4)' : 'transparent', textShadowOffset: { width: 0, height: 0 }, textShadowRadius: 6 },
+  lockSubText: { color: isDark ? '#e4e4e7' : '#374151', fontSize: 13, marginVertical: 15, fontWeight: '600' },
+  biometricBtn: { backgroundColor: isDark ? '#27272a' : '#f9fafb', width: '100%', padding: 14, borderRadius: 10, alignItems: 'center', marginBottom: 15, borderWidth: 1, borderColor: isDark ? '#3f3f46' : '#d1d5db' },
+  biometricText: { color: isDark ? '#ffffff' : '#111827', fontWeight: 'bold', fontSize: 14 },
   line: { flex: 1, height: 1, backgroundColor: isDark ? '#27272a' : '#e5e7eb' },
-  orText: { color: isDark ? '#a1a1aa' : '#9ca3af', fontSize: 11, marginHorizontal: 10, fontWeight: 'bold' },
-  lockInput: { backgroundColor: isDark ? '#121214' : '#f9fafb', color: isDark ? '#ffffff' : '#111827', width: '100%', padding: 12, borderRadius: 8, marginBottom: 12, borderWidth: 1, borderColor: isDark ? '#3f3f46' : '#d1d5db', textAlign: 'center', fontSize: 16 },
+  orText: { color: isDark ? '#a1a1aa' : '#6b7280', fontSize: 11, marginHorizontal: 10, fontWeight: 'bold' },
+  lockInput: { backgroundColor: isDark ? '#121214' : '#ffffff', color: isDark ? '#ffffff' : '#111827', width: '100%', padding: 12, borderRadius: 8, marginBottom: 12, borderWidth: 1, borderColor: isDark ? '#3f3f46' : '#d1d5db', textAlign: 'center', fontSize: 16 },
   header: { backgroundColor: isDark ? '#18181b' : '#ffffff', padding: 14, alignItems: 'center', borderBottomWidth: 1, borderBottomColor: isDark ? '#27272a' : '#e5e7eb' },
   tabContainer: { flexDirection: 'row', backgroundColor: isDark ? '#18181b' : '#ffffff', borderBottomWidth: 1, borderBottomColor: isDark ? '#27272a' : '#e5e7eb' },
   tab: { flex: 1, paddingVertical: 12, alignItems: 'center' },
-  activeTab: { borderBottomWidth: 3, borderBottomColor: '#6A1B29', backgroundColor: isDark ? '#27272a' : '#e5e7eb' },
-  tabText: { color: isDark ? '#d4d4d8' : '#4b5563', fontSize: 11, fontWeight: '600' },
-  activeTabText: { color: isDark ? '#ffffff' : '#111827', fontWeight: 'bold', textShadowColor: isDark ? 'rgba(255, 255, 255, 0.5)' : 'transparent', textShadowOffset: { width: 0, height: 0 }, textShadowRadius: 6 },
+  activeTab: { borderBottomWidth: 3, borderBottomColor: '#6A1B29', backgroundColor: isDark ? '#27272a' : '#f9fafb' },
+  tabText: { color: isDark ? '#a1a1aa' : '#4b5563', fontSize: 11, fontWeight: '600' },
+  activeTabText: { color: isDark ? '#ffffff' : '#111827', fontWeight: 'bold' },
   formCard: { backgroundColor: isDark ? '#18181b' : '#ffffff', padding: 16, borderRadius: 14, marginBottom: 15, borderWidth: 1, borderColor: isDark ? '#27272a' : '#e5e7eb' },
-  filterCard: { backgroundColor: isDark ? '#1f1f23' : '#ffffff', padding: 14, borderRadius: 12, marginBottom: 15, borderWidth: 1, borderColor: isDark ? '#27272a' : '#e5e7eb' },
+  filterCard: { backgroundColor: isDark ? '#18181b' : '#ffffff', padding: 14, borderRadius: 12, marginBottom: 15, borderWidth: 1, borderColor: isDark ? '#27272a' : '#e5e7eb' },
   searchInput: { backgroundColor: isDark ? '#121214' : '#f9fafb', color: isDark ? '#ffffff' : '#111827', padding: 11, borderRadius: 8, marginBottom: 10, borderWidth: 1, borderColor: isDark ? '#3f3f46' : '#d1d5db', fontSize: 13 },
-  cardTitle: { color: isDark ? '#ffffff' : '#111827', fontSize: 15, fontWeight: 'bold', marginBottom: 12, textShadowColor: isDark ? 'rgba(255, 255, 255, 0.4)' : 'transparent', textShadowOffset: { width: 0, height: 0 }, textShadowRadius: 6 },
-  labelSub: { color: isDark ? '#f3f4f6' : '#374151', fontSize: 12, marginBottom: 6, fontWeight: '600' },
-  filterLabelHeader: { color: isDark ? '#f3f4f6' : '#374151', fontSize: 11, marginBottom: 4, marginTop: 6, fontWeight: '600' },
-  gridBtn: { width: '48%', paddingVertical: 10, backgroundColor: isDark ? '#27272a' : '#f3f4f6', alignItems: 'center', borderRadius: 8, borderWidth: 1, borderColor: isDark ? '#3f3f46' : '#d1d5db' },
+  cardTitle: { color: isDark ? '#ffffff' : '#111827', fontSize: 15, fontWeight: 'bold', marginBottom: 12 },
+  labelSub: { color: isDark ? '#f4f4f5' : '#1f2937', fontSize: 12, marginBottom: 6, fontWeight: '600' },
+  filterLabelHeader: { color: isDark ? '#f4f4f5' : '#1f2937', fontSize: 11, marginBottom: 4, marginTop: 6, fontWeight: '600' },
+  gridBtn: { width: '48%', paddingVertical: 10, backgroundColor: isDark ? '#27272a' : '#f9fafb', alignItems: 'center', borderRadius: 8, borderWidth: 1, borderColor: isDark ? '#3f3f46' : '#d1d5db' },
   gridBtnActive: { backgroundColor: '#6A1B29', borderColor: '#8E2437' },
   gridBtnText: { color: isDark ? '#e4e4e7' : '#374151', fontSize: 12, fontWeight: '600' },
   gridBtnTextActive: { color: '#ffffff', fontWeight: 'bold' },
-  tipBtn: { flex: 1, padding: 10, backgroundColor: isDark ? '#27272a' : '#f3f4f6', alignItems: 'center', borderRadius: 8, borderWidth: 1, borderColor: isDark ? '#3f3f46' : '#d1d5db' },
+  tipBtn: { flex: 1, padding: 10, backgroundColor: isDark ? '#27272a' : '#f9fafb', alignItems: 'center', borderRadius: 8, borderWidth: 1, borderColor: isDark ? '#3f3f46' : '#d1d5db' },
   gelirActive: { backgroundColor: '#6A1B29', borderColor: '#8E2437' },
+  tipText: { color: isDark ? '#e4e4e7' : '#374151', fontSize: 12, fontWeight: 'bold' },
+  tipTextActive: { color: '#ffffff' },
   input: { backgroundColor: isDark ? '#121214' : '#f9fafb', color: isDark ? '#ffffff' : '#111827', padding: 12, borderRadius: 8, marginBottom: 10, borderWidth: 1, borderColor: isDark ? '#3f3f46' : '#d1d5db', fontSize: 14 },
-  sectionTitle: { color: isDark ? '#ffffff' : '#111827', fontSize: 15, fontWeight: 'bold', marginVertical: 10, textShadowColor: isDark ? 'rgba(255, 255, 255, 0.4)' : 'transparent', textShadowOffset: { width: 0, height: 0 }, textShadowRadius: 6 },
+  sectionTitle: { color: isDark ? '#ffffff' : '#111827', fontSize: 15, fontWeight: 'bold', marginVertical: 10 },
   historyItem: { backgroundColor: isDark ? '#18181b' : '#ffffff', padding: 14, borderRadius: 10, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8, borderWidth: 1, borderColor: isDark ? '#27272a' : '#e5e7eb' },
   historyDesc: { color: isDark ? '#ffffff' : '#111827', fontWeight: '600', fontSize: 13 },
   historyDate: { color: isDark ? '#a1a1aa' : '#6b7280', fontSize: 11, marginTop: 2 },
   listItem: { backgroundColor: isDark ? '#18181b' : '#ffffff', padding: 14, borderRadius: 10, marginBottom: 8, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', borderWidth: 1, borderColor: isDark ? '#27272a' : '#e5e7eb' },
   creditItem: { backgroundColor: isDark ? '#18181b' : '#ffffff', padding: 14, borderRadius: 10, marginBottom: 8, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', borderWidth: 1, borderColor: '#7f1d1d' },
-  listTitle: { color: isDark ? '#ffffff' : '#111827', fontSize: 14, fontWeight: 'bold', textShadowColor: isDark ? 'rgba(255, 255, 255, 0.3)' : 'transparent', textShadowOffset: { width: 0, height: 0 }, textShadowRadius: 4 },
+  listTitle: { color: isDark ? '#ffffff' : '#111827', fontSize: 14, fontWeight: 'bold' },
   listBadge: { backgroundColor: isDark ? '#27272a' : '#e5e7eb', color: isDark ? '#ffffff' : '#111827', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 5, fontSize: 10, fontWeight: 'bold' },
-  listSub: { color: isDark ? '#f4f4f5' : '#4b5563', fontSize: 12, marginBottom: 2, fontWeight: '500' },
+  listSub: { color: isDark ? '#e4e4e7' : '#4b5563', fontSize: 12, marginBottom: 2, fontWeight: '500' },
   listDesc: { color: isDark ? '#d4d4d8' : '#6b7280', fontSize: 12, fontStyle: 'italic' },
   emptyCard: { backgroundColor: isDark ? '#18181b' : '#ffffff', padding: 20, borderRadius: 10, alignItems: 'center', borderWidth: 1, borderColor: isDark ? '#27272a' : '#e5e7eb' },
-  emptyText: { color: isDark ? '#d4d4d8' : '#6b7280', textAlign: 'center', fontSize: 13 },
+  emptyText: { color: isDark ? '#a1a1aa' : '#6b7280', textAlign: 'center', fontSize: 13 },
   footerContainer: { marginTop: 25, alignItems: 'center', paddingVertical: 10, borderTopWidth: 1, borderTopColor: isDark ? '#27272a' : '#e5e7eb' },
   footerText: { color: isDark ? '#a1a1aa' : '#9ca3af', fontSize: 12, fontWeight: '600', letterSpacing: 0.5 },
-  chip: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 16, backgroundColor: isDark ? '#27272a' : '#e5e7eb', marginRight: 6, borderWidth: 1, borderColor: isDark ? '#3f3f46' : '#d1d5db' },
+  chip: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 16, backgroundColor: isDark ? '#27272a' : '#f3f4f6', marginRight: 6, borderWidth: 1, borderColor: isDark ? '#3f3f46' : '#d1d5db' },
   chipActive: { backgroundColor: '#6A1B29', borderColor: '#8E2437' },
-  chipText: { color: isDark ? '#f3f4f6' : '#374151', fontSize: 12, fontWeight: '600' },
+  chipText: { color: isDark ? '#e4e4e7' : '#374151', fontSize: 12, fontWeight: '600' },
   chipTextActive: { color: '#ffffff' },
-  subChip: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8, backgroundColor: isDark ? '#121214' : '#f3f4f6', marginRight: 6, borderWidth: 1, borderColor: isDark ? '#3f3f46' : '#d1d5db' },
+  subChip: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8, backgroundColor: isDark ? '#121214' : '#f9fafb', marginRight: 6, borderWidth: 1, borderColor: isDark ? '#3f3f46' : '#d1d5db' },
   subChipActive: { backgroundColor: '#6A1B29', borderColor: '#6A1B29' },
-  subChipText: { color: isDark ? '#f3f4f6' : '#374151', fontSize: 11 },
+  subChipText: { color: isDark ? '#e4e4e7' : '#374151', fontSize: 11 },
   subChipTextActive: { color: '#ffffff', fontWeight: 'bold' }
 });
 
@@ -890,7 +891,6 @@ const styles = StyleSheet.create({
   summaryVal: { color: '#ffffff', fontSize: 15, fontWeight: 'bold', marginTop: 4 },
   gridSelector: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginBottom: 12 },
   tipRow: { flexDirection: 'row', marginBottom: 12, gap: 6 },
-  tipText: { color: '#ffffff', fontSize: 12, fontWeight: 'bold' },
   saveBtn: { backgroundColor: '#6A1B29', padding: 12, borderRadius: 8, alignItems: 'center' },
   saveBtnText: { color: '#ffffff', fontWeight: 'bold', fontSize: 14 },
   creditAmount: { color: '#f87171', fontSize: 13, fontWeight: 'bold', marginTop: 2 },
