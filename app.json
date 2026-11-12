@@ -1,31 +1,16 @@
 {
   "expo": {
-    "name": "Emlak Takip",
-    "slug": "emlak",
-    "version": "1.0.0",
-    "sdkVersion": "54.0.0",
-    "platforms": [
-      "ios",
-      "android"
-    ],
-    "android": {
-      "package": "com.toco.emlaktakip"
-    },
-    "extra": {
-      "eas": {
-        "projectId": "a8a2c977-356c-49f7-8d84-58c4290a3f13"
-      }
-    }
-  }
-}
-{
-  "expo": {
     "name": "PATRON",
     "slug": "patron",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
+    "sdkVersion": "54.0.0",
+    "platforms": [
+      "ios",
+      "android"
+    ],
     "splash": {
       "image": "./assets/splash.png",
       "resizeMode": "contain",
@@ -36,6 +21,11 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#6A1B29"
+      }
+    },
+    "extra": {
+      "eas": {
+        "projectId": "a8a2c977-356c-49f7-8d84-58c4290a3f13"
       }
     }
   }
