@@ -18,3 +18,25 @@
     }
   }
 }
+{
+  "expo": {
+    "name": "PATRON",
+    "slug": "patron",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#6A1B29"
+    },
+    "android": {
+      "package": "com.toco.patron",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#6A1B29"
+      }
+    }
+  }
+}
