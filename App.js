@@ -11,8 +11,8 @@ import {
   Alert,
   Platform
 } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-// Türkçe karakter duyarsız arama için normalize fonksiyonu
 const normalizeText = (text) => {
   if (!text) return '';
   return text.toString().toLocaleLowerCase('tr-TR').trim();
@@ -22,7 +22,6 @@ export default function App() {
   const [lang, setLang] = useState('tr');
   const [activeTab, setActiveTab] = useState('kasa');
 
-  // Kasa / Banka Hesapları
   const [hesaplar, setHesaplar] = useState([
     { id: '1', ad: 'Nakit Kasa', bakiye: 0 },
     { id: '2', ad: 'Ana Banka Hesabı', bakiye: 0 }
@@ -37,17 +36,15 @@ export default function App() {
   const [seciliHesap, setSeciliHesap] = useState('Nakit Kasa');
   const [islemGecmisi, setIslemGecmisi] = useState([]);
 
-  // Portföy State'leri
   const [portfoyler, setPortfoyler] = useState([]);
   const [pBaslik, setPBaslik] = useState('');
-  const [pTip, setPTip] = useState('Satılık'); // Satılık, Kiralık, Kat Karşılığı
-  const [pCategory, setPCategory] = useState('Konut'); // Konut, Arsa, İş Yeri, Zeytinlik/Tarla
+  const [pTip, setPTip] = useState('Satılık');
+  const [pCategory, setPCategory] = useState('Konut');
   const [pFiyat, setPFiyat] = useState('');
   const [pKonum, setPKonum] = useState('');
   const [pAciklama, setPAciklama] = useState('');
   const [duzenlenenPortfoyId, setDuzenlenenPortfoyId] = useState(null);
 
-  // Talep State'leri
   const [talepler, setTalepler] = useState([]);
   const [tMusteri, setTMusteri] = useState('');
   const [tTip, setTTip] = useState('Satılık');
@@ -57,7 +54,6 @@ export default function App() {
   const [tKonum, setTKonum] = useState('');
   const [duzenlenenTalepId, setDuzenlenenTalepId] = useState(null);
 
-  // Filtreleme State'leri
   const [pSearchQuery, setPSearchQuery] = useState('');
   const [pSelectedCategory, setPSelectedCategory] = useState('TÜMÜ');
   const [pSelectedStatus, setPSelectedStatus] = useState('TÜMÜ');
@@ -67,6 +63,43 @@ export default function App() {
   const [tSelectedStatus, setTSelectedStatus] = useState('TÜMÜ');
 
   const [bildirimler, setBildirimler] = useState([]);
+
+  // Uygulama açıldığında kaydedilmiş verileri yükle
+  useEffect(() => {
+    const verileriYukle = async () => {
+      try {
+        const kayitliHesaplar = await AsyncStorage.getItem('@toco_hesaplar');
+        const kayitliIslemler = await AsyncStorage.getItem('@toco_islemler');
+        const kayitliPortfoyler = await AsyncStorage.getItem('@toco_portfoyler');
+        const kayitliTalepler = await AsyncStorage.getItem('@toco_talepler');
+
+        if (kayitliHesaplar) setHesaplar(JSON.parse(kayitliHesaplar));
+        if (kayitliIslemler) setIslemGecmisi(JSON.parse(kayitliIslemler));
+        if (kayitliPortfoyler) setPortfoyler(JSON.parse(kayitliPortfoyler));
+        if (kayitliTalepler) setTalepler(JSON.parse(kayitliTalepler));
+      } catch (e) {
+        console.log('Veri yüklenirken hata oluştu', e);
+      }
+    };
+    verileriYukle();
+  }, []);
+
+  // Veriler değiştiğinde telefona kalıcı olarak kaydet
+  useEffect(() => {
+    AsyncStorage.setItem('@toco_hesaplar', JSON.stringify(hesaplar));
+  }, [hesaplar]);
+
+  useEffect(() => {
+    AsyncStorage.setItem('@toco_islemler', JSON.stringify(islemGecmisi));
+  }, [islemGecmisi]);
+
+  useEffect(() => {
+    AsyncStorage.setItem('@toco_portfoyler', JSON.stringify(portfoyler));
+  }, [portfoyler]);
+
+  useEffect(() => {
+    AsyncStorage.setItem('@toco_talepler', JSON.stringify(talepler));
+  }, [talepler]);
 
   const t = {
     tr: {
@@ -102,53 +135,17 @@ export default function App() {
       eslesmeBaslik: 'Nokta Atışı Eşleşmeler',
       bildirimYok: 'Aktif eşleşme bulunmuyor.',
       footerText: 'TOCO Ticaret Ofisi tarafından geliştirilmiştir'
-    },
-    en: {
-      kasa: 'Cash & Banks',
-      portfoy: 'Portfolio',
-      talepler: 'Requests',
-      eslesme: 'Matches',
-      toplamVarlik: 'Total Assets',
-      hesaplarim: 'Accounts & Banks',
-      yeniHesap: 'Add Account',
-      hesapAdi: 'Account Name',
-      ilkBakiye: 'Initial Balance (TL)',
-      ekleKaydet: 'Save',
-      guncelle: 'Update',
-      iptal: 'Cancel',
-      yeniIslem: 'Add Income / Expense',
-      tutar: 'Amount (TL)',
-      islemAciklama: 'Description',
-      gelir: 'Income',
-      gider: 'Expense',
-      islemGecmisi: 'Transactions',
-      grafikBaslik: 'Financial Summary',
-      portfoyEkle: 'Add Portfolio',
-      pBaslik: 'Title',
-      pFiyat: 'Price (TL)',
-      pKonum: 'Location',
-      pAciklama: 'Description',
-      talepEkle: 'Add Request',
-      tMusteri: 'Client Name',
-      tMaxFiyat: 'Max Budget (TL)',
-      tAranan: 'Desired Property',
-      tKonum: 'Location',
-      eslesmeBaslik: 'Smart Matches',
-      bildirimYok: 'No matches found.',
-      footerText: 'Developed by TOCO Ticaret Ofisi'
     }
   };
 
   const text = t[lang];
 
-  // Toplam varlık hesaplama
   const toplamVarlik = hesaplar.reduce((toplam, h) => toplam + h.bakiye, 0);
   const hesaplarBaslangicToplami = hesaplar.reduce((t, h) => t + h.bakiye, 0);
   const islemGelirToplami = islemGecmisi.filter(i => i.tip === 'gelir').reduce((t, i) => t + i.tutar, 0);
   const toplamGelir = Math.max(0, hesaplarBaslangicToplami) + islemGelirToplami;
   const toplamGider = islemGecmisi.filter(i => i.tip === 'gider').reduce((t, i) => t + i.tutar, 0);
 
-  // Akıllı Eşleştirme Motoru (%15 Fiyat Esnekliği + Kategori + Bölge Uyumu)
   useEffect(() => {
     let yeniEslesmeler = [];
     portfoyler.forEach(portfoy => {
@@ -156,16 +153,12 @@ export default function App() {
         const pCat = normalizeText(portfoy.category || 'konut');
         const tCat = normalizeText(talep.category || 'konut');
         const kategoriUygun = pCat === tCat;
-
         const tipUygun = normalizeText(portfoy.tip) === normalizeText(talep.tip);
-        
         const pKonumStr = normalizeText(portfoy.konum);
         const tKonumStr = normalizeText(talep.konum);
         const konumUygun = !tKonumStr || pKonumStr.includes(tKonumStr) || tKonumStr.includes(pKonumStr);
-
         const pFiyatNum = Number(portfoy.fiyat) || 0;
         const tMaxFiyatNum = Number(talep.maxFiyat) || 0;
-        // Kat karşılığında fiyat şartı aranmaz, diğerlerinde %15 toleranslı bütçe kontrolü
         const fiyatUygun = portfoy.tip === 'Kat Karşılığı' || tMaxFiyatNum === 0 || pFiyatNum <= tMaxFiyatNum * 1.15;
 
         if (kategoriUygun && tipUygun && konumUygun && fiyatUygun) {
@@ -179,7 +172,6 @@ export default function App() {
     setBildirimler(yeniEslesmeler);
   }, [portfoyler, talepler]);
 
-  // Filtrelenmiş Portföyler
   const filtrelenmisPortfoyler = useMemo(() => {
     return portfoyler.filter(p => {
       const query = normalizeText(pSearchQuery);
@@ -195,7 +187,6 @@ export default function App() {
     });
   }, [portfoyler, pSearchQuery, pSelectedCategory, pSelectedStatus]);
 
-  // Filtrelenmiş Talepler
   const filtrelenmisTalepler = useMemo(() => {
     return talepler.filter(t => {
       const query = normalizeText(tSearchQuery);
@@ -214,15 +205,13 @@ export default function App() {
   const hesapKaydet = () => {
     if (!yeniHesapAd) return Alert.alert('Hata', 'Hesap adı giriniz.');
     const bakiyeNum = Number(yeniHesapBakiye) || 0;
-
     if (duzenlenenHesapId) {
       setHesaplar(hesaplar.map(h => h.id === duzenlenenHesapId ? { ...h, ad: yeniHesapAd, bakiye: bakiyeNum } : h));
       setDuzenlenenHesapId(null);
     } else {
       setHesaplar([...hesaplar, { id: Date.now().toString(), ad: yeniHesapAd, bakiye: bakiyeNum }]);
     }
-    setYeniHesapAd('');
-    setYeniHesapBakiye('');
+    setYeniHesapAd(''); setYeniHesapBakiye('');
   };
 
   const hesapSil = (id) => setHesaplar(hesaplar.filter(h => h.id !== id));
@@ -235,7 +224,6 @@ export default function App() {
   const islemKaydet = () => {
     if (!tutar || !aciklama) return Alert.alert('Hata', 'Tutar ve açıklama zorunludur.');
     const sayiTutar = Number(tutar);
-
     setHesaplar(hesaplar.map(h => {
       if (h.ad === seciliHesap) {
         const yeniBakiye = islemTipi === 'gelir' ? h.bakiye + sayiTutar : h.bakiye - sayiTutar;
@@ -243,7 +231,6 @@ export default function App() {
       }
       return h;
     }));
-
     const yeniIslem = {
       id: Date.now().toString(),
       tip: islemTipi,
@@ -253,8 +240,7 @@ export default function App() {
       tarih: new Date().toLocaleDateString('tr-TR')
     };
     setIslemGecmisi([yeniIslem, ...islemGecmisi]);
-    setTutar('');
-    setAciklama('');
+    setTutar(''); setAciklama('');
   };
 
   const islemSil = (id, tip, tutarVal, hesapAdi) => {
@@ -271,7 +257,6 @@ export default function App() {
   const portfoyKaydet = () => {
     if (!pBaslik || !pFiyat || !pKonum) return Alert.alert('Hata', 'Başlık, fiyat ve konum zorunludur.');
     const fiyatNum = Number(pFiyat);
-
     if (duzenlenenPortfoyId) {
       setPortfoyler(portfoyler.map(p => p.id === duzenlenenPortfoyId ? { ...p, baslik: pBaslik, tip: pTip, category: pCategory, fiyat: fiyatNum, konum: pKonum, aciklama: pAciklama } : p));
       setDuzenlenenPortfoyId(null);
@@ -291,7 +276,6 @@ export default function App() {
   const talepKaydet = () => {
     if (!tMusteri || !tMaxFiyat || !tKonum) return Alert.alert('Hata', 'Müşteri, bütçe ve bölge zorunludur.');
     const busteriMax = Number(tMaxFiyat);
-
     if (duzenlenenTalepId) {
       setTalepler(talepler.map(t => t.id === duzenlenenTalepId ? { ...t, musteri: tMusteri, tip: tTip, category: tCategory, maxFiyat: busteriMax, aranan: tAranan, konum: tKonum } : t));
       setDuzenlenenTalepId(null);
@@ -312,7 +296,6 @@ export default function App() {
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor="#0b0f19" />
       
-      {/* Üst Başlık - PATRON */}
       <View style={styles.header}>
         <View style={styles.titleBox}>
           <Text style={styles.headerTitle}>PATRON</Text>
@@ -322,7 +305,6 @@ export default function App() {
         </TouchableOpacity>
       </View>
 
-      {/* Sekmeler */}
       <View style={styles.tabContainer}>
         <TouchableOpacity style={[styles.tab, activeTab === 'kasa' && styles.activeTab]} onPress={() => setActiveTab('kasa')}>
           <Text style={[styles.tabText, activeTab === 'kasa' && styles.activeTabText]}>{text.kasa}</Text>
@@ -341,8 +323,6 @@ export default function App() {
       </View>
 
       <ScrollView contentContainerStyle={styles.content}>
-        
-        {/* KASA & BANKA SEKMESİ */}
         {activeTab === 'kasa' && (
           <View>
             <View style={styles.bakiyeCard}>
@@ -361,10 +341,6 @@ export default function App() {
                   <Text style={styles.grafikLabel}>Toplam Gider</Text>
                   <Text style={styles.grafikVal}>-{toplamGider.toLocaleString()} TL</Text>
                 </View>
-              </View>
-              <View style={styles.barContainer}>
-                <View style={[styles.barGelir, { flex: toplamGelir || 1 }]} />
-                <View style={[styles.barGider, { flex: toplamGider || 1 }]} />
               </View>
             </View>
 
@@ -403,39 +379,15 @@ export default function App() {
                 <Text style={styles.saveBtnText}>{text.ekleKaydet}</Text>
               </TouchableOpacity>
             </View>
-
-            <Text style={styles.sectionTitle}>{text.islemGecmisi}</Text>
-            {islemGecmisi.length === 0 ? (
-              <View style={styles.emptyCard}><Text style={styles.emptyText}>Henüz finansal hareket yok.</Text></View>
-            ) : (
-              islemGecmisi.map(item => (
-                <View key={item.id} style={styles.historyItem}>
-                  <View>
-                    <Text style={styles.historyDesc}>{item.aciklama}</Text>
-                    <Text style={styles.historyDate}>{item.hesap} • {item.tarih}</Text>
-                  </View>
-                  <View style={{alignItems: 'flex-end'}}>
-                    <Text style={[styles.historyAmount, item.tip === 'gelir' ? styles.textGelir : styles.textGider]}>
-                      {item.tip === 'gelir' ? '+' : '-'}{item.tutar.toLocaleString()} TL
-                    </Text>
-                    <TouchableOpacity onPress={() => islemSil(item.id, item.tip, item.tutar, item.hesap)}>
-                      <Text style={{color: '#f87171', fontSize: 12, marginTop: 4}}>🗑️</Text>
-                    </TouchableOpacity>
-                  </View>
-                </View>
-              ))
-            )}
           </View>
         )}
 
-        {/* PORTFÖY SEKMESİ */}
         {activeTab === 'portfoy' && (
           <View>
             <View style={styles.formCard}>
               <Text style={styles.cardTitle}>{duzenlenenPortfoyId ? 'Portföy Düzenle' : text.portfoyEkle}</Text>
               <TextInput style={styles.input} placeholder={text.pBaslik} placeholderTextColor="#64748b" value={pBaslik} onChangeText={setPBaslik} />
               
-              {/* Kategori Seçimi */}
               <Text style={styles.labelSub}>Kategori:</Text>
               <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chipRow}>
                 {['Konut', 'Arsa', 'İş Yeri', 'Zeytinlik/Tarla'].map(cat => (
@@ -445,7 +397,6 @@ export default function App() {
                 ))}
               </ScrollView>
 
-              {/* İşlem Tipi */}
               <Text style={styles.labelSub}>İşlem Tipi:</Text>
               <View style={styles.tipRow}>
                 {['Satılık', 'Kiralık', 'Kat Karşılığı'].map(st => (
@@ -462,170 +413,65 @@ export default function App() {
               <TouchableOpacity style={styles.saveBtn} onPress={portfoyKaydet}>
                 <Text style={styles.saveBtnText}>{duzenlenenPortfoyId ? text.guncelle : text.ekleKaydet}</Text>
               </TouchableOpacity>
-              {duzenlenenPortfoyId && (
-                <TouchableOpacity style={[styles.saveBtn, {backgroundColor: '#475569', marginTop: 8}]} onPress={() => { setDuzenlenenPortfoyId(null); setPBaslik(''); setPFiyat(''); setPKonum(''); setPAciklama(''); }}>
-                  <Text style={styles.saveBtnText}>{text.iptal}</Text>
-                </TouchableOpacity>
-              )}
             </View>
 
-            {/* FİLTRELEME & ARAMA ALANI */}
             <View style={styles.filterCard}>
               <TextInput 
                 style={styles.searchInput} 
-                placeholder="🔍 Portföy ara (Başlık, konum, açıklama)..." 
+                placeholder="🔍 Portföy ara..." 
                 placeholderTextColor="#64748b"
                 value={pSearchQuery}
                 onChangeText={setPSearchQuery}
               />
-              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chipRow}>
-                {['TÜMÜ', 'Konut', 'Arsa', 'İş Yeri', 'Zeytinlik/Tarla'].map(cat => (
-                  <TouchableOpacity key={cat} onPress={() => setPSelectedCategory(cat)} style={[styles.chip, pSelectedCategory === cat && styles.chipActive]}>
-                    <Text style={[styles.chipText, pSelectedCategory === cat && styles.chipTextActive]}>{cat}</Text>
-                  </TouchableOpacity>
-                ))}
-              </ScrollView>
-              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chipRow}>
-                {['TÜMÜ', 'Satılık', 'Kiralık', 'Kat Karşılığı'].map(st => (
-                  <TouchableOpacity key={st} onPress={() => setPSelectedStatus(st)} style={[styles.subChip, pSelectedStatus === st && styles.subChipActive]}>
-                    <Text style={[styles.subChipText, pSelectedStatus === st && styles.subChipTextActive]}>{st}</Text>
-                  </TouchableOpacity>
-                ))}
-              </ScrollView>
             </View>
 
-            <Text style={styles.sectionTitle}>Portföyler ({filtrelenmisPortfoyler.length} / {portfoyler.length})</Text>
-            {filtrelenmisPortfoyler.length === 0 ? (
-              <View style={styles.emptyCard}><Text style={styles.emptyText}>Aradığınız kriterlere uygun portföy bulunamadı.</Text></View>
-            ) : (
-              filtrelenmisPortfoyler.map(p => (
-                <View key={p.id} style={styles.listItem}>
-                  <View style={{flex: 1}}>
-                    <View style={styles.listHeader}>
-                      <Text style={styles.listTitle}>{p.baslik}</Text>
-                      <View style={{flexDirection: 'row', gap: 4}}>
-                        <Text style={styles.listBadge}>{p.category || 'Konut'}</Text>
-                        <Text style={[styles.listBadge, {backgroundColor: '#701a2c'}]}>{p.tip}</Text>
-                      </View>
-                    </View>
-                    <Text style={styles.listSub}>📍 {p.konum} | 💰 {p.fiyat.toLocaleString()} TL</Text>
-                    {p.aciklama ? <Text style={styles.listDesc}>{p.aciklama}</Text> : null}
+            <Text style={styles.sectionTitle}>Portföyler ({filtrelenmisPortfoyler.length})</Text>
+            {filtrelenmisPortfoyler.map(p => (
+              <View key={p.id} style={styles.listItem}>
+                <View style={{flex: 1}}>
+                  <View style={styles.listHeader}>
+                    <Text style={styles.listTitle}>{p.baslik}</Text>
+                    <Text style={styles.listBadge}>{p.tip}</Text>
                   </View>
-                  <View style={styles.actionColumn}>
-                    <TouchableOpacity style={styles.iconBtnEdit} onPress={() => portfoyDuzenleBaslat(p)}>
-                      <Text style={styles.iconText}>✏️</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity style={styles.iconBtnDel} onPress={() => portfoySil(p.id)}>
-                      <Text style={styles.iconText}>🗑️</Text>
-                    </TouchableOpacity>
-                  </View>
+                  <Text style={styles.listSub}>📍 {p.konum} | 💰 {p.fiyat.toLocaleString()} TL</Text>
                 </View>
-              ))
-            )}
+                <TouchableOpacity onPress={() => portfoySil(p.id)}><Text style={{color: '#f87171'}}>🗑️</Text></TouchableOpacity>
+              </View>
+            ))}
           </View>
         )}
 
-        {/* TALEPLER SEKMESİ */}
         {activeTab === 'talepler' && (
           <View>
             <View style={styles.formCard}>
               <Text style={styles.cardTitle}>{duzenlenenTalepId ? 'Talep Düzenle' : text.talepEkle}</Text>
               <TextInput style={styles.input} placeholder={text.tMusteri} placeholderTextColor="#64748b" value={tMusteri} onChangeText={setTMusteri} />
-              
-              {/* Kategori Seçimi */}
-              <Text style={styles.labelSub}>Kategori:</Text>
-              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chipRow}>
-                {['Konut', 'Arsa', 'İş Yeri', 'Zeytinlik/Tarla'].map(cat => (
-                  <TouchableOpacity key={cat} onPress={() => setTCategory(cat)} style={[styles.chip, tCategory === cat && styles.chipActive]}>
-                    <Text style={[styles.chipText, tCategory === cat && styles.chipTextActive]}>{cat}</Text>
-                  </TouchableOpacity>
-                ))}
-              </ScrollView>
-
-              {/* İşlem Tipi */}
-              <Text style={styles.labelSub}>İşlem Tipi:</Text>
-              <View style={styles.tipRow}>
-                {['Satılık', 'Kiralık', 'Kat Karşılığı'].map(st => (
-                  <TouchableOpacity key={st} style={[styles.tipBtn, tTip === st && styles.gelirActive]} onPress={() => setTTip(st)}>
-                    <Text style={styles.tipText}>{st}</Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-
               <TextInput style={styles.input} placeholder={text.tMaxFiyat} placeholderTextColor="#64748b" keyboardType="numeric" value={tMaxFiyat} onChangeText={setTMaxFiyat} />
               <TextInput style={styles.input} placeholder={text.tAranan} placeholderTextColor="#64748b" value={tAranan} onChangeText={setTAranan} />
               <TextInput style={styles.input} placeholder={text.tKonum} placeholderTextColor="#64748b" value={tKonum} onChangeText={setTKonum} />
-
               <TouchableOpacity style={styles.saveBtn} onPress={talepKaydet}>
-                <Text style={styles.saveBtnText}>{duzenlenenTalepId ? text.guncelle : text.ekleKaydet}</Text>
+                <Text style={styles.saveBtnText}>{text.ekleKaydet}</Text>
               </TouchableOpacity>
-              {duzenlenenTalepId && (
-                <TouchableOpacity style={[styles.saveBtn, {backgroundColor: '#475569', marginTop: 8}]} onPress={() => { setDuzenlenenTalepId(null); setTMusteri(''); setTMaxFiyat(''); setTAranan(''); setTKonum(''); }}>
-                  <Text style={styles.saveBtnText}>{text.iptal}</Text>
-                </TouchableOpacity>
-              )}
             </View>
 
-            {/* FİLTRELEME & ARAMA ALANI */}
-            <View style={styles.filterCard}>
-              <TextInput 
-                style={styles.searchInput} 
-                placeholder="🔍 Talep ara (Müşteri, aranan, bölge)..." 
-                placeholderTextColor="#64748b"
-                value={tSearchQuery}
-                onChangeText={setTSearchQuery}
-              />
-              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chipRow}>
-                {['TÜMÜ', 'Konut', 'Arsa', 'İş Yeri', 'Zeytinlik/Tarla'].map(cat => (
-                  <TouchableOpacity key={cat} onPress={() => setTSelectedCategory(cat)} style={[styles.chip, tSelectedCategory === cat && styles.chipActive]}>
-                    <Text style={[styles.chipText, tSelectedCategory === cat && styles.chipTextActive]}>{cat}</Text>
-                  </TouchableOpacity>
-                ))}
-              </ScrollView>
-              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chipRow}>
-                {['TÜMÜ', 'Satılık', 'Kiralık', 'Kat Karşılığı'].map(st => (
-                  <TouchableOpacity key={st} onPress={() => setTSelectedStatus(st)} style={[styles.subChip, tSelectedStatus === st && styles.subChipActive]}>
-                    <Text style={[styles.subChipText, tSelectedStatus === st && styles.subChipTextActive]}>{st}</Text>
-                  </TouchableOpacity>
-                ))}
-              </ScrollView>
-            </View>
-
-            <Text style={styles.sectionTitle}>Talepler ({filtrelenmisTalepler.length} / {talepler.length})</Text>
-            {filtrelenmisTalepler.length === 0 ? (
-              <View style={styles.emptyCard}><Text style={styles.emptyText}>Aradığınız kriterlere uygun talep bulunamadı.</Text></View>
-            ) : (
-              filtrelenmisTalepler.map(talep => (
-                <View key={talep.id} style={styles.listItem}>
-                  <View style={{flex: 1}}>
-                    <View style={styles.listHeader}>
-                      <Text style={styles.listTitle}>{talep.musteri}</Text>
-                      <View style={{flexDirection: 'row', gap: 4}}>
-                        <Text style={styles.listBadge}>{talep.category || 'Konut'}</Text>
-                        <Text style={[styles.listBadge, {backgroundColor: '#701a2c'}]}>{talep.tip}</Text>
-                      </View>
-                    </View>
-                    <Text style={styles.listSub}>🔍 {talep.aranan} | 📍 {talep.konum}</Text>
-                    <Text style={styles.listDesc}>Max Bütçe: {talep.maxFiyat.toLocaleString()} TL</Text>
-                  </View>
-                  <View style={styles.actionColumn}>
-                    <TouchableOpacity style={styles.iconBtnEdit} onPress={() => talepDuzenleBaslat(talep)}><Text style={styles.iconText}>✏️</Text></TouchableOpacity>
-                    <TouchableOpacity style={styles.iconBtnDel} onPress={() => talepSil(talep.id)}><Text style={styles.iconText}>🗑️</Text></TouchableOpacity>
-                  </View>
+            <Text style={styles.sectionTitle}>Talepler ({filtrelenmisTalepler.length})</Text>
+            {filtrelenmisTalepler.map(talep => (
+              <View key={talep.id} style={styles.listItem}>
+                <View style={{flex: 1}}>
+                  <Text style={styles.listTitle}>{talep.musteri}</Text>
+                  <Text style={styles.listSub}>🔍 {talep.aranan} | 📍 {talep.konum}</Text>
                 </View>
-              ))
-            )}
+                <TouchableOpacity onPress={() => talepSil(talep.id)}><Text style={{color: '#f87171'}}>🗑️</Text></TouchableOpacity>
+              </View>
+            ))}
           </View>
         )}
 
-        {/* EŞLEŞMELER SEKMESİ */}
         {activeTab === 'eslesme' && (
           <View>
             <Text style={styles.sectionTitle}>{text.eslesmeBaslik}</Text>
             {bildirimler.length === 0 ? (
-              <View style={styles.emptyCard}>
-                <Text style={styles.emptyText}>{text.bildirimYok}</Text>
-              </View>
+              <View style={styles.emptyCard}><Text style={styles.emptyText}>{text.bildirimYok}</Text></View>
             ) : (
               bildirimler.map(b => (
                 <View key={b.id} style={styles.alertCard}>
@@ -635,108 +481,52 @@ export default function App() {
             )}
           </View>
         )}
-
-        {/* Kurum / Yazılım İmzası Alt Bilgi */}
-        <View style={styles.footerContainer}>
-          <Text style={styles.footerText}>{text.footerText}</Text>
-        </View>
-
       </ScrollView>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { 
-    flex: 1, 
-    backgroundColor: '#090d16',
-    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0 
-  },
-  header: { 
-    backgroundColor: '#111827', 
-    paddingHorizontal: 15, 
-    paddingVertical: 14, 
-    flexDirection: 'row', 
-    justifyContent: 'space-between', 
-    alignItems: 'center', 
-    borderBottomWidth: 1, 
-    borderBottomColor: '#1f2937' 
-  },
-  titleBox: {
-    flex: 1,
-    alignItems: 'center',
-    backgroundColor: '#4a1525', 
-    paddingVertical: 8,
-    paddingHorizontal: 20,
-    borderRadius: 10,
-    marginRight: 10,
-    borderWidth: 1.5,
-    borderColor: '#701a2c'
-  },
+  container: { flex: 1, backgroundColor: '#090d16', paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0 },
+  header: { backgroundColor: '#111827', padding: 14, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  titleBox: { backgroundColor: '#4a1525', paddingVertical: 8, paddingHorizontal: 20, borderRadius: 10, borderWidth: 1.5, borderColor: '#701a2c' },
   headerTitle: { color: '#f3f4f6', fontSize: 19, fontWeight: '900', letterSpacing: 2 },
-  langBtn: { backgroundColor: '#1f2937', paddingHorizontal: 10, paddingVertical: 6, borderRadius: 8, borderWidth: 1, borderColor: '#374151' },
-  langText: { color: '#fff', fontSize: 13, fontWeight: '600' },
-  tabContainer: { flexDirection: 'row', backgroundColor: '#111827', borderBottomWidth: 1, borderBottomColor: '#1f2937' },
+  langBtn: { backgroundColor: '#1f2937', paddingHorizontal: 10, paddingVertical: 6, borderRadius: 8 },
+  langText: { color: '#fff', fontSize: 13 },
+  tabContainer: { flexDirection: 'row', backgroundColor: '#111827' },
   tab: { flex: 1, paddingVertical: 12, alignItems: 'center' },
   activeTab: { borderBottomWidth: 3, borderBottomColor: '#38bdf8', backgroundColor: '#1f2937' },
-  tabText: { color: '#94a3b8', fontSize: 12, fontWeight: '600' },
+  tabText: { color: '#94a3b8', fontSize: 12 },
   activeTabText: { color: '#38bdf8', fontWeight: 'bold' },
-  content: { padding: 15, paddingBottom: 60 },
+  content: { padding: 15 },
   bakiyeCard: { backgroundColor: '#0284c7', padding: 20, borderRadius: 14, alignItems: 'center', marginBottom: 15 },
-  bakiyeLabel: { color: '#e0f2fe', fontSize: 13, fontWeight: '600' },
+  bakiyeLabel: { color: '#e0f2fe', fontSize: 13 },
   bakiyeValue: { color: '#fff', fontSize: 26, fontWeight: 'bold', marginTop: 4 },
-  formCard: { backgroundColor: '#111827', padding: 16, borderRadius: 14, marginBottom: 15, borderWidth: 1, borderColor: '#1f2937' },
-  filterCard: { backgroundColor: '#161e2e', padding: 12, borderRadius: 12, marginBottom: 12, borderWidth: 1, borderColor: '#22303c' },
-  searchInput: { backgroundColor: '#090d16', color: '#fff', padding: 10, borderRadius: 8, marginBottom: 10, borderWidth: 1, borderColor: '#1f2937', fontSize: 13 },
+  formCard: { backgroundColor: '#111827', padding: 16, borderRadius: 14, marginBottom: 15 },
+  filterCard: { backgroundColor: '#161e2e', padding: 12, borderRadius: 12, marginBottom: 12 },
+  searchInput: { backgroundColor: '#090d16', color: '#fff', padding: 10, borderRadius: 8 },
   cardTitle: { color: '#f8fafc', fontSize: 15, fontWeight: 'bold', marginBottom: 12 },
-  labelSub: { color: '#94a3b8', fontSize: 12, marginBottom: 6, fontWeight: '600' },
-  grafikRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 10 },
+  labelSub: { color: '#94a3b8', fontSize: 12, marginBottom: 6 },
+  grafikRow: { flexDirection: 'row', justifyContent: 'space-between' },
   grafikBoxGelir: { flex: 1, backgroundColor: '#064e3b', padding: 10, borderRadius: 8, marginRight: 5, alignItems: 'center' },
   grafikBoxGider: { flex: 1, backgroundColor: '#7f1d1d', padding: 10, borderRadius: 8, marginLeft: 5, alignItems: 'center' },
   grafikLabel: { color: '#e2e8f0', fontSize: 11 },
-  grafikVal: { color: '#fff', fontSize: 13, fontWeight: 'bold', marginTop: 2 },
-  barContainer: { flexDirection: 'row', height: 8, borderRadius: 4, overflow: 'hidden', backgroundColor: '#334155' },
-  barGelir: { backgroundColor: '#10b981', height: '100%' },
-  barGider: { backgroundColor: '#ef4444', height: '100%' },
+  grafikVal: { color: '#fff', fontSize: 13, fontWeight: 'bold' },
   tipRow: { flexDirection: 'row', marginBottom: 12, gap: 4 },
-  tipBtn: { flex: 1, padding: 8, backgroundColor: '#1f2937', alignItems: 'center', borderRadius: 8, borderWidth: 1, borderColor: '#374151' },
-  gelirActive: { backgroundColor: '#4a1525', borderColor: '#701a2c' },
-  giderActive: { backgroundColor: '#4a1525', borderColor: '#701a2c' },
-  tipText: { color: '#fff', fontWeight: 'bold', fontSize: 12 },
-  input: { backgroundColor: '#090d16', color: '#fff', padding: 12, borderRadius: 8, marginBottom: 10, borderWidth: 1, borderColor: '#1f2937', fontSize: 14 },
+  tipBtn: { flex: 1, padding: 8, backgroundColor: '#1f2937', alignItems: 'center', borderRadius: 8 },
+  gelirActive: { backgroundColor: '#4a1525' },
+  tipText: { color: '#fff', fontSize: 12 },
+  input: { backgroundColor: '#090d16', color: '#fff', padding: 12, borderRadius: 8, marginBottom: 10 },
   saveBtn: { backgroundColor: '#0284c7', padding: 12, borderRadius: 8, alignItems: 'center' },
-  saveBtnText: { color: '#fff', fontWeight: 'bold', fontSize: 14 },
-  sectionTitle: { color: '#f8fafc', fontSize: 15, fontWeight: 'bold', marginBottom: 8, marginTop: 10 },
-  historyItem: { backgroundColor: '#111827', padding: 14, borderRadius: 10, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8, borderWidth: 1, borderColor: '#1f2937' },
-  historyDesc: { color: '#f8fafc', fontWeight: '600', fontSize: 13 },
-  historyDate: { color: '#94a3b8', fontSize: 11, marginTop: 2 },
-  historyAmount: { fontSize: 14, fontWeight: 'bold' },
-  textGelir: { color: '#4ade80' },
-  textGider: { color: '#f87171' },
-  listItem: { backgroundColor: '#111827', padding: 14, borderRadius: 10, marginBottom: 8, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', borderWidth: 1, borderColor: '#1f2937' },
-  listHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 3 },
+  saveBtnText: { color: '#fff', fontWeight: 'bold' },
+  sectionTitle: { color: '#f8fafc', fontSize: 15, fontWeight: 'bold', marginVertical: 10 },
+  listItem: { backgroundColor: '#111827', padding: 14, borderRadius: 10, marginBottom: 8, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  listHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   listTitle: { color: '#f8fafc', fontSize: 14, fontWeight: 'bold' },
-  listBadge: { backgroundColor: '#0284c7', color: '#fff', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 5, fontSize: 10, fontWeight: 'bold' },
-  listSub: { color: '#38bdf8', fontSize: 12, marginBottom: 2 },
-  listDesc: { color: '#94a3b8', fontSize: 12, fontStyle: 'italic' },
-  actionColumn: { justifyContent: 'center', alignItems: 'flex-end', marginLeft: 10 },
-  actionRow: { flexDirection: 'row', gap: 6 },
-  iconBtnEdit: { backgroundColor: '#0284c7', paddingHorizontal: 8, paddingVertical: 6, borderRadius: 6, marginBottom: 4, alignItems: 'center' },
-  iconBtnDel: { backgroundColor: '#dc2626', paddingHorizontal: 8, paddingVertical: 6, borderRadius: 6, alignItems: 'center' },
-  iconText: { fontSize: 14 },
-  emptyCard: { backgroundColor: '#111827', padding: 20, borderRadius: 10, alignItems: 'center', borderWidth: 1, borderColor: '#1f2937' },
-  emptyText: { color: '#94a3b8', textAlign: 'center', fontSize: 13 },
-  alertCard: { backgroundColor: '#065f46', padding: 14, borderRadius: 10, marginBottom: 8, borderWidth: 1, borderColor: '#047857' },
-  alertText: { color: '#d1fae5', fontSize: 13, fontWeight: '600', lineHeight: 18 },
-  footerContainer: { marginTop: 25, alignItems: 'center', paddingVertical: 10, borderTopWidth: 1, borderTopColor: '#1f2937' },
-  footerText: { color: '#64748b', fontSize: 12, fontWeight: '600', letterSpacing: 0.5 },
-  chipRow: { flexDirection: 'row', marginBottom: 8 },
-  chip: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 16, backgroundColor: '#1f2937', marginRight: 6, borderWidth: 1, borderColor: '#374151' },
-  chipActive: { backgroundColor: '#4a1525', borderColor: '#701a2c' },
-  chipText: { color: '#94a3b8', fontSize: 12, fontWeight: '600' },
-  chipTextActive: { color: '#fff' },
-  subChip: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8, backgroundColor: '#090d16', marginRight: 6, borderWidth: 1, borderColor: '#1f2937' },
-  subChipActive: { backgroundColor: '#38bdf8', borderColor: '#38bdf8' },
-  subChipText: { color: '#94a3b8', fontSize: 11 },
-  subChipTextActive: { color: '#090d16', fontWeight: 'bold' }
+  listBadge: { backgroundColor: '#0284c7', color: '#fff', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 5, fontSize: 10 },
+  listSub: { color: '#38bdf8', fontSize: 12 },
+  emptyCard: { backgroundColor: '#111827', padding: 20, borderRadius: 10, alignItems: 'center' },
+  emptyText: { color: '#94a3b8' },
+  alertCard: { backgroundColor: '#065f46', padding: 14, borderRadius: 10, marginBottom: 8 },
+  alertText: { color: '#d1fae5', fontSize: 13 }
 });
