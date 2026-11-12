@@ -19,10 +19,9 @@ const normalizeText = (text) => {
 };
 
 export default function App() {
-  // Varsayılan açılış sekmesi Portföy olarak ayarlandı
   const [activeTab, setActiveTab] = useState('portfoy');
 
-  // Kasa / Banka ve Kredi Hesapları
+  // Kasa / Banka Hesapları
   const [hesaplar, setHesaplar] = useState([
     { id: '1', ad: 'Nakit Kasa', bakiye: 0 },
     { id: '2', ad: 'Ana Banka Hesabı', bakiye: 0 }
@@ -31,11 +30,13 @@ export default function App() {
   const [yeniHesapBakiye, setYeniHesapBakiye] = useState('');
   const [duzenlenenHesapId, setDuzenlenenHesapId] = useState(null);
 
-  // Kredi Borçları Takip State'leri
+  // Kredi ve Taksit Takip State'leri
   const [krediler, setKrediler] = useState([]);
   const [krediBanka, setKrediBanka] = useState('');
   const [krediTutar, setKrediTutar] = useState('');
-  const [krediTarih, setKrediTarih] = useState('');
+  const [krediOdemeGunu, setKrediOdemeGunu] = useState('');
+  const [krediGuncelTaksit, setKrediGuncelTaksit] = useState('');
+  const [krediToplamTaksit, setKrediToplamTaksit] = useState('');
 
   const [islemTipi, setIslemTipi] = useState('gelir');
   const [tutar, setTutar] = useState('');
@@ -71,6 +72,7 @@ export default function App() {
 
   const [bildirimler, setBildirimler] = useState([]);
 
+  // Veri Yükleme (AsyncStorage - Kesin Koruma)
   useEffect(() => {
     const verileriYukle = async () => {
       try {
@@ -92,25 +94,11 @@ export default function App() {
     verileriYukle();
   }, []);
 
-  useEffect(() => {
-    AsyncStorage.setItem('@toco_hesaplar', JSON.stringify(hesaplar));
-  }, [hesaplar]);
-
-  useEffect(() => {
-    AsyncStorage.setItem('@toco_islemler', JSON.stringify(islemGecmisi));
-  }, [islemGecmisi]);
-
-  useEffect(() => {
-    AsyncStorage.setItem('@toco_portfoyler', JSON.stringify(portfoyler));
-  }, [portfoyler]);
-
-  useEffect(() => {
-    AsyncStorage.setItem('@toco_talepler', JSON.stringify(talepler));
-  }, [talepler]);
-
-  useEffect(() => {
-    AsyncStorage.setItem('@toco_krediler', JSON.stringify(krediler));
-  }, [krediler]);
+  useEffect(() => { AsyncStorage.setItem('@toco_hesaplar', JSON.stringify(hesaplar)); }, [hesaplar]);
+  useEffect(() => { AsyncStorage.setItem('@toco_islemler', JSON.stringify(islemGecmisi)); }, [islemGecmisi]);
+  useEffect(() => { AsyncStorage.setItem('@toco_portfoyler', JSON.stringify(portfoyler)); }, [portfoyler]);
+  useEffect(() => { AsyncStorage.setItem('@toco_talepler', JSON.stringify(talepler)); }, [talepler]);
+  useEffect(() => { AsyncStorage.setItem('@toco_krediler', JSON.stringify(krediler)); }, [krediler]);
 
   useEffect(() => {
     let yeniEslesmeler = [];
@@ -195,18 +183,29 @@ export default function App() {
   };
 
   const krediKaydet = () => {
-    if (!krediBanka || !krediTutar || !krediTarih) return Alert.alert('Hata', 'Banka adı, tutar ve son ödeme tarihi zorunludur.');
+    if (!krediBanka || !krediTutar || !krediOdemeGunu) return Alert.alert('Hata', 'Banka adı, tutar ve ödeme günü zorunludur.');
     const yeniKredi = {
       id: Date.now().toString(),
       banka: krediBanka,
       tutar: Number(krediTutar) || 0,
-      tarih: krediTarih
+      odemeGunu: krediOdemeGunu,
+      guncelTaksit: krediGuncelTaksit || '1',
+      toplamTaksit: krediToplamTaksit || '1'
     };
     setKrediler([yeniKredi, ...krediler]);
-    setKrediBanka(''); setKrediTutar(''); setKrediTarih('');
+    setKrediBanka(''); setKrediTutar(''); setKrediOdemeGunu(''); setKrediGuncelTaksit(''); setKrediToplamTaksit('');
   };
 
-  const krediSil = (id) => setKrediler(krediler.filter(k => k.id !== id));
+  const krediErkenKapat = (id) => {
+    Alert.alert(
+      'Krediyi Kapat',
+      'Bu krediyi erken kapatarak borç yükümlülüğünden kaldırmak istiyor musunuz?',
+      [
+        { text: 'Vazgeç', style: 'cancel' },
+        { text: 'Evet, Kapat', onPress: () => setKrediler(krediler.filter(k => k.id !== id)) }
+      ]
+    );
+  };
 
   const islemKaydet = () => {
     if (!tutar || !aciklama) return Alert.alert('Hata', 'Tutar ve açıklama zorunludur.');
@@ -283,14 +282,12 @@ export default function App() {
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor="#0b0f19" />
       
-      {/* Üst Başlık (İngilizce butonu kaldırıldı, tamamen beyaz & vişne çürüğü) */}
       <View style={styles.header}>
         <View style={styles.titleBox}>
           <Text style={styles.headerTitle}>PATRON</Text>
         </View>
       </View>
 
-      {/* Sekmeler (Kasa & Banka en sonda, Portföy ilk sırada) */}
       <View style={styles.tabContainer}>
         <TouchableOpacity style={[styles.tab, activeTab === 'portfoy' && styles.activeTab]} onPress={() => setActiveTab('portfoy')}>
           <Text style={[styles.tabText, activeTab === 'portfoy' && styles.activeTabText]}>Portföy</Text>
@@ -525,7 +522,6 @@ export default function App() {
               <Text style={styles.bakiyeSubText}>Brüt: {toplamVarlik.toLocaleString()} TL | Kredi Borçları: -{toplamKrediBorcu.toLocaleString()} TL</Text>
             </View>
 
-            {/* Finansal Özet Kartları */}
             <View style={styles.formCard}>
               <Text style={styles.cardTitle}>Finansal Durum Özeti</Text>
               <View style={styles.summaryCardRow}>
@@ -540,8 +536,8 @@ export default function App() {
               </View>
             </View>
 
-            {/* BANKA KREDİ BORÇLARI VE HATIRLATICI */}
-            <Text style={styles.sectionTitle}>💳 Banka Kredi Borçları & Yaklaşan Ödemeler</Text>
+            {/* BANKA KREDİLERİ & TAKSİT VE ERKEN KAPATMA */}
+            <Text style={styles.sectionTitle}>💳 Banka Kredileri & Taksit Takibi</Text>
             {krediler.length === 0 ? (
               <View style={styles.emptyCard}><Text style={styles.emptyText}>Kayıtlı kredi borcu bulunmuyor.</Text></View>
             ) : (
@@ -550,10 +546,10 @@ export default function App() {
                   <View style={{flex: 1}}>
                     <Text style={styles.listTitle}>{k.banka}</Text>
                     <Text style={styles.creditAmount}>Kalan Borç: {k.tutar.toLocaleString()} TL</Text>
-                    <Text style={styles.creditDate}>⏰ Son Ödeme Tarihi: {k.tarih}</Text>
+                    <Text style={styles.creditDate}>📅 Ödeme Günü: Her ayın {k.odemeGunu}. günü | Taksit: {k.guncelTaksit} / {k.toplamTaksit}</Text>
                   </View>
-                  <TouchableOpacity onPress={() => krediSil(k.id)}>
-                    <Text style={{color: '#f87171', fontSize: 16}}>🗑️</Text>
+                  <TouchableOpacity style={styles.erkenKapatBtn} onPress={() => krediErkenKapat(k.id)}>
+                    <Text style={styles.erkenKapatText}>Erken Kapat</Text>
                   </TouchableOpacity>
                 </View>
               ))
@@ -562,8 +558,12 @@ export default function App() {
             <View style={styles.formCard}>
               <Text style={styles.cardTitle}>Yeni Kredi / Borç Ekle</Text>
               <TextInput style={styles.input} placeholder="Banka Adı / Kredi Türü" placeholderTextColor="#9ca3af" value={krediBanka} onChangeText={setKrediBanka} />
-              <TextInput style={styles.input} placeholder="Kalan Tutar (TL)" placeholderTextColor="#9ca3af" keyboardType="default" value={krediTutar} onChangeText={setKrediTutar} />
-              <TextInput style={styles.input} placeholder="Son Ödeme Tarihi (Örn: 25.10.2026)" placeholderTextColor="#9ca3af" value={krediTarih} onChangeText={setKrediTarih} />
+              <TextInput style={styles.input} placeholder="Kalan Toplam Borç (TL)" placeholderTextColor="#9ca3af" keyboardType="default" value={krediTutar} onChangeText={setKrediTutar} />
+              <TextInput style={styles.input} placeholder="Ödeme Günü (Örn: 15)" placeholderTextColor="#9ca3af" keyboardType="default" value={krediOdemeGunu} onChangeText={setKrediOdemeGunu} />
+              <View style={{flexDirection: 'row', gap: 10}}>
+                <TextInput style={[styles.input, {flex: 1}]} placeholder="Kaçıncı Taksit (Örn: 5)" placeholderTextColor="#9ca3af" keyboardType="default" value={krediGuncelTaksit} onChangeText={setKrediGuncelTaksit} />
+                <TextInput style={[styles.input, {flex: 1}]} placeholder="Toplam Taksit (Örn: 36)" placeholderTextColor="#9ca3af" keyboardType="default" value={krediToplamTaksit} onChangeText={setKrediToplamTaksit} />
+              </View>
               <TouchableOpacity style={styles.saveBtn} onPress={krediKaydet}>
                 <Text style={styles.saveBtnText}>Krediyi Kaydet</Text>
               </TouchableOpacity>
@@ -688,6 +688,8 @@ const styles = StyleSheet.create({
   creditItem: { backgroundColor: '#18181b', padding: 14, borderRadius: 10, marginBottom: 8, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', borderWidth: 1, borderColor: '#7f1d1d' },
   creditAmount: { color: '#f87171', fontSize: 13, fontWeight: 'bold', marginTop: 2 },
   creditDate: { color: '#fbbf24', fontSize: 12, marginTop: 2, fontWeight: '600' },
+  erkenKapatBtn: { backgroundColor: '#047857', paddingHorizontal: 10, paddingVertical: 8, borderRadius: 8 },
+  erkenKapatText: { color: '#ffffff', fontSize: 11, fontWeight: 'bold' },
   listHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 },
   listTitle: { color: '#ffffff', fontSize: 14, fontWeight: 'bold' },
   listBadge: { backgroundColor: '#27272a', color: '#ffffff', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 5, fontSize: 10, fontWeight: 'bold' },
