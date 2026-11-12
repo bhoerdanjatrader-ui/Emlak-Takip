@@ -26,8 +26,13 @@ export default function App() {
   const [islemModu, setIslemModu] = useState('giris');
   const [yeniPinInput, setYeniPinInput] = useState('');
 
+  // Tema Desteği ('dark' veya 'light')
+  const [theme, setTheme] = useState('dark');
+  const isDark = theme === 'dark';
+
   const [activeTab, setActiveTab] = useState('portfoy');
 
+  // Kasa / Banka Hesapları
   const [hesaplar, setHesaplar] = useState([
     { id: '1', ad: 'Nakit Kasa', bakiye: 0 },
     { id: '2', ad: 'Ana Banka Hesabı', bakiye: 0 }
@@ -36,6 +41,7 @@ export default function App() {
   const [yeniHesapBakiye, setYeniHesapBakiye] = useState('');
   const [duzenlenenHesapId, setDuzenlenenHesapId] = useState(null);
 
+  // Kredi ve Taksit Takip State'leri
   const [krediler, setKrediler] = useState([]);
   const [krediBanka, setKrediBanka] = useState('');
   const [krediTutar, setKrediTutar] = useState('');
@@ -95,6 +101,7 @@ export default function App() {
     }
   };
 
+  // Veri Yükleme (Asla silinmeme garantili AsyncStorage anahtarları)
   useEffect(() => {
     const verileriYukle = async () => {
       try {
@@ -104,6 +111,7 @@ export default function App() {
         const kayitliTalepler = await AsyncStorage.getItem('@toco_talepler');
         const kayitliKrediler = await AsyncStorage.getItem('@toco_krediler');
         const savedPin = await AsyncStorage.getItem('@toco_app_pin');
+        const savedTheme = await AsyncStorage.getItem('@toco_app_theme');
 
         if (kayitliHesaplar) setHesaplar(JSON.parse(kayitliHesaplar));
         if (kayitliIslemler) setIslemGecmisi(JSON.parse(kayitliIslemler));
@@ -111,6 +119,7 @@ export default function App() {
         if (kayitliTalepler) setTalepler(JSON.parse(kayitliTalepler));
         if (kayitliKrediler) setKrediler(JSON.parse(kayitliKrediler));
         if (savedPin) setKayitliPin(savedPin);
+        if (savedTheme) setTheme(savedTheme);
 
         parmakIziIleGiris();
       } catch (e) {
@@ -125,6 +134,7 @@ export default function App() {
   useEffect(() => { AsyncStorage.setItem('@toco_portfoyler', JSON.stringify(portfoyler)); }, [portfoyler]);
   useEffect(() => { AsyncStorage.setItem('@toco_talepler', JSON.stringify(talepler)); }, [talepler]);
   useEffect(() => { AsyncStorage.setItem('@toco_krediler', JSON.stringify(krediler)); }, [krediler]);
+  useEffect(() => { AsyncStorage.setItem('@toco_app_theme', theme); }, [theme]);
 
   useEffect(() => {
     let yeniEslesmeler = [];
@@ -325,30 +335,32 @@ export default function App() {
     setTMusteri(t.musteri); setTTip(t.tip); setTCategory(t.category || 'Konut'); setTMaxFiyat(t.maxFiyat.toString()); setTAranan(t.aranan); setTKonum(t.konum);
   };
 
+  const dynStyles = getDynamicStyles(isDark);
+
   if (!isUnlocked) {
     return (
-      <SafeAreaView style={styles.lockContainer}>
-        <StatusBar barStyle="light-content" backgroundColor="#121214" />
-        <View style={styles.lockCard}>
+      <SafeAreaView style={dynStyles.lockContainer}>
+        <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} backgroundColor={isDark ? '#121214' : '#f3f4f6'} />
+        <View style={dynStyles.lockCard}>
           <View style={styles.titleBox}>
             <Text style={styles.headerTitle}>PATRON</Text>
           </View>
-          <Text style={styles.lockSubText}>TOCO Ticaret Ofisi Güvenli Giriş</Text>
+          <Text style={dynStyles.lockSubText}>TOCO Ticaret Ofisi Güvenli Giriş</Text>
 
-          <TouchableOpacity style={styles.biometricBtn} onPress={parmakIziIleGiris}>
-            <Text style={styles.biometricText}>👆 Parmak İzi ile Aç</Text>
+          <TouchableOpacity style={dynStyles.biometricBtn} onPress={parmakIziIleGiris}>
+            <Text style={dynStyles.biometricText}>👆 Parmak İzi ile Aç</Text>
           </TouchableOpacity>
 
           <View style={styles.dividerRow}>
-            <View style={styles.line} />
-            <Text style={styles.orText}>VEYA ŞİFRE GİRİN</Text>
-            <View style={styles.line} />
+            <View style={dynStyles.line} />
+            <Text style={dynStyles.orText}>VEYA ŞİFRE GİRİN</Text>
+            <View style={dynStyles.line} />
           </View>
 
           <TextInput
-            style={styles.lockInput}
+            style={dynStyles.lockInput}
             placeholder="Uygulama Şifresi (PIN)"
-            placeholderTextColor="#9ca3af"
+            placeholderTextColor={isDark ? '#9ca3af' : '#6b7280'}
             secureTextEntry
             keyboardType="numeric"
             value={girilenPin}
@@ -363,61 +375,66 @@ export default function App() {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#0b0f19" />
+    <SafeAreaView style={dynStyles.container}>
+      <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} backgroundColor={isDark ? '#0b0f19' : '#e5e7eb'} />
       
-      <View style={styles.header}>
+      <View style={dynStyles.header}>
         <View style={styles.titleBox}>
           <Text style={styles.headerTitle}>PATRON</Text>
         </View>
       </View>
 
-      <View style={styles.tabContainer}>
-        <TouchableOpacity style={[styles.tab, activeTab === 'portfoy' && styles.activeTab]} onPress={() => setActiveTab('portfoy')}>
-          <Text style={[styles.tabText, activeTab === 'portfoy' && styles.activeTabText]}>Portföy</Text>
+      {/* Sekmeler (Ayarlar sekmesi eklendi) */}
+      <View style={dynStyles.tabContainer}>
+        <TouchableOpacity style={[styles.tab, activeTab === 'portfoy' && dynStyles.activeTab]} onPress={() => setActiveTab('portfoy')}>
+          <Text style={[dynStyles.tabText, activeTab === 'portfoy' && dynStyles.activeTabText]}>Portföy</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={[styles.tab, activeTab === 'talepler' && styles.activeTab]} onPress={() => setActiveTab('talepler')}>
-          <Text style={[styles.tabText, activeTab === 'talepler' && styles.activeTabText]}>Talepler</Text>
+        <TouchableOpacity style={[styles.tab, activeTab === 'talepler' && dynStyles.activeTab]} onPress={() => setActiveTab('talepler')}>
+          <Text style={[dynStyles.tabText, activeTab === 'talepler' && dynStyles.activeTabText]}>Talepler</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={[styles.tab, activeTab === 'eslesme' && styles.activeTab]} onPress={() => setActiveTab('eslesme')}>
-          <Text style={[styles.tabText, activeTab === 'eslesme' && styles.activeTabText]}>
-            Eşleşmeler {bildirimler.length > 0 ? `(${bildirimler.length})` : ''}
+        <TouchableOpacity style={[styles.tab, activeTab === 'eslesme' && dynStyles.activeTab]} onPress={() => setActiveTab('eslesme')}>
+          <Text style={[dynStyles.tabText, activeTab === 'eslesme' && dynStyles.activeTabText]}>
+            Eşleşme {bildirimler.length > 0 ? `(${bildirimler.length})` : ''}
           </Text>
         </TouchableOpacity>
-        <TouchableOpacity style={[styles.tab, activeTab === 'kasa' && styles.activeTab]} onPress={() => setActiveTab('kasa')}>
-          <Text style={[styles.tabText, activeTab === 'kasa' && styles.activeTabText]}>Kasa & Banka</Text>
+        <TouchableOpacity style={[styles.tab, activeTab === 'kasa' && dynStyles.activeTab]} onPress={() => setActiveTab('kasa')}>
+          <Text style={[dynStyles.tabText, activeTab === 'kasa' && dynStyles.activeTabText]}>Kasa</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={[styles.tab, activeTab === 'ayarlar' && dynStyles.activeTab]} onPress={() => setActiveTab('ayarlar')}>
+          <Text style={[dynStyles.tabText, activeTab === 'ayarlar' && dynStyles.activeTabText]}>Ayarlar</Text>
         </TouchableOpacity>
       </View>
 
       <ScrollView contentContainerStyle={styles.content}>
         
+        {/* PORTFÖY SEKMESİ */}
         {activeTab === 'portfoy' && (
           <View>
-            <View style={styles.formCard}>
-              <Text style={styles.cardTitle}>{duzenlenenPortfoyId ? 'Portföy Düzenle' : 'Portföy Ekle'}</Text>
-              <TextInput style={styles.input} placeholder="Portföy Başlığı" placeholderTextColor="#9ca3af" value={pBaslik} onChangeText={setPBaslik} />
+            <View style={dynStyles.formCard}>
+              <Text style={dynStyles.cardTitle}>{duzenlenenPortfoyId ? 'Portföy Düzenle' : 'Portföy Ekle'}</Text>
+              <TextInput style={dynStyles.input} placeholder="Portföy Başlığı" placeholderTextColor={isDark ? '#9ca3af' : '#6b7280'} value={pBaslik} onChangeText={setPBaslik} />
               
-              <Text style={styles.labelSub}>Kategori:</Text>
+              <Text style={dynStyles.labelSub}>Kategori:</Text>
               <View style={styles.gridSelector}>
                 {['Konut', 'Arsa', 'İş Yeri', 'Zeytinlik/Tarla'].map(cat => (
-                  <TouchableOpacity key={cat} onPress={() => setPCategory(cat)} style={[styles.gridBtn, pCategory === cat && styles.gridBtnActive]}>
-                    <Text style={[styles.gridBtnText, pCategory === cat && styles.gridBtnTextActive]}>{cat}</Text>
+                  <TouchableOpacity key={cat} onPress={() => setPCategory(cat)} style={[dynStyles.gridBtn, pCategory === cat && dynStyles.gridBtnActive]}>
+                    <Text style={[dynStyles.gridBtnText, pCategory === cat && dynStyles.gridBtnTextActive]}>{cat}</Text>
                   </TouchableOpacity>
                 ))}
               </View>
 
-              <Text style={styles.labelSub}>İşlem Tipi:</Text>
+              <Text style={dynStyles.labelSub}>İşlem Tipi:</Text>
               <View style={styles.tipRow}>
                 {['Satılık', 'Kiralık', 'Kat Karşılığı'].map(st => (
-                  <TouchableOpacity key={st} style={[styles.tipBtn, pTip === st && styles.gelirActive]} onPress={() => setPTip(st)}>
-                    <Text style={styles.tipText}>{st}</Text>
+                  <TouchableOpacity key={st} style={[dynStyles.tipBtn, pTip === st && dynStyles.gelirActive]} onPress={() => setPTip(st)}>
+                    <Text style={dynStyles.tipText}>{st}</Text>
                   </TouchableOpacity>
                 ))}
               </View>
 
-              <TextInput style={styles.input} placeholder="Fiyat (TL)" placeholderTextColor="#9ca3af" keyboardType="default" value={pFiyat} onChangeText={setPFiyat} />
-              <TextInput style={styles.input} placeholder="Konum / Bölge" placeholderTextColor="#9ca3af" value={pKonum} onChangeText={setPKonum} />
-              <TextInput style={[styles.input, { height: 70 }]} placeholder="Açıklama" placeholderTextColor="#9ca3af" multiline value={pAciklama} onChangeText={setPAciklama} />
+              <TextInput style={dynStyles.input} placeholder="Fiyat (TL)" placeholderTextColor={isDark ? '#9ca3af' : '#6b7280'} keyboardType="default" value={pFiyat} onChangeText={setPFiyat} />
+              <TextInput style={dynStyles.input} placeholder="Konum / Bölge" placeholderTextColor={isDark ? '#9ca3af' : '#6b7280'} value={pKonum} onChangeText={setPKonum} />
+              <TextInput style={[dynStyles.input, { height: 70 }]} placeholder="Açıklama" placeholderTextColor={isDark ? '#9ca3af' : '#6b7280'} multiline value={pAciklama} onChangeText={setPAciklama} />
               
               <TouchableOpacity style={styles.saveBtn} onPress={portfoyKaydet}>
                 <Text style={styles.saveBtnText}>{duzenlenenPortfoyId ? 'Güncelle' : 'Kaydet'}</Text>
@@ -429,48 +446,48 @@ export default function App() {
               )}
             </View>
 
-            <View style={styles.filterCard}>
+            <View style={dynStyles.filterCard}>
               <TextInput 
-                style={styles.searchInput} 
+                style={dynStyles.searchInput} 
                 placeholder="🔍 Portföy ara (Başlık, bölge)..." 
-                placeholderTextColor="#9ca3af"
+                placeholderTextColor={isDark ? '#9ca3af' : '#6b7280'}
                 value={pSearchQuery}
                 onChangeText={setPSearchQuery}
               />
-              <Text style={styles.filterLabelHeader}>Kategoriye Göre Filtrele:</Text>
+              <Text style={dynStyles.filterLabelHeader}>Kategoriye Göre Filtrele:</Text>
               <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chipRow}>
                 {['TÜMÜ', 'Konut', 'Arsa', 'İş Yeri', 'Zeytinlik/Tarla'].map(cat => (
-                  <TouchableOpacity key={cat} onPress={() => setPSelectedCategory(cat)} style={[styles.chip, pSelectedCategory === cat && styles.chipActive]}>
-                    <Text style={[styles.chipText, pSelectedCategory === cat && styles.chipTextActive]}>{cat}</Text>
+                  <TouchableOpacity key={cat} onPress={() => setPSelectedCategory(cat)} style={[dynStyles.chip, pSelectedCategory === cat && dynStyles.chipActive]}>
+                    <Text style={[dynStyles.chipText, pSelectedCategory === cat && dynStyles.chipTextActive]}>{cat}</Text>
                   </TouchableOpacity>
                 ))}
               </ScrollView>
-              <Text style={styles.filterLabelHeader}>İşlem Tipine Göre:</Text>
+              <Text style={dynStyles.filterLabelHeader}>İşlem Tipine Göre:</Text>
               <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chipRow}>
                 {['TÜMÜ', 'Satılık', 'Kiralık', 'Kat Karşılığı'].map(st => (
-                  <TouchableOpacity key={st} onPress={() => setPSelectedStatus(st)} style={[styles.subChip, pSelectedStatus === st && styles.subChipActive]}>
-                    <Text style={[styles.subChipText, pSelectedStatus === st && styles.subChipTextActive]}>{st}</Text>
+                  <TouchableOpacity key={st} onPress={() => setPSelectedStatus(st)} style={[dynStyles.subChip, pSelectedStatus === st && dynStyles.subChipActive]}>
+                    <Text style={[dynStyles.subChipText, pSelectedStatus === st && dynStyles.subChipTextActive]}>{st}</Text>
                   </TouchableOpacity>
                 ))}
               </ScrollView>
             </View>
 
-            <Text style={styles.sectionTitle}>Portföyler ({filtrelenmisPortfoyler.length} / {portfoyler.length})</Text>
+            <Text style={dynStyles.sectionTitle}>Portföyler ({filtrelenmisPortfoyler.length} / {portfoyler.length})</Text>
             {filtrelenmisPortfoyler.length === 0 ? (
-              <View style={styles.emptyCard}><Text style={styles.emptyText}>Kayıtlı portföy bulunamadı.</Text></View>
+              <View style={dynStyles.emptyCard}><Text style={dynStyles.emptyText}>Kayıtlı portföy bulunamadı.</Text></View>
             ) : (
               filtrelenmisPortfoyler.map(p => (
-                <View key={p.id} style={styles.listItem}>
+                <View key={p.id} style={dynStyles.listItem}>
                   <View style={{flex: 1}}>
                     <View style={styles.listHeader}>
-                      <Text style={styles.listTitle}>{p.baslik}</Text>
+                      <Text style={dynStyles.listTitle}>{p.baslik}</Text>
                       <View style={{flexDirection: 'row', gap: 4}}>
                         <Text style={styles.listBadge}>{p.category || 'Konut'}</Text>
                         <Text style={[styles.listBadge, {backgroundColor: '#6A1B29'}]}>{p.tip}</Text>
                       </View>
                     </View>
-                    <Text style={styles.listSub}>📍 {p.konum} | 💰 {p.fiyat.toLocaleString()} TL</Text>
-                    {p.aciklama ? <Text style={styles.listDesc}>{p.aciklama}</Text> : null}
+                    <Text style={dynStyles.listSub}>📍 {p.konum} | 💰 {p.fiyat.toLocaleString()} TL</Text>
+                    {p.aciklama ? <Text style={dynStyles.listDesc}>{p.aciklama}</Text> : null}
                   </View>
                   <View style={styles.actionColumn}>
                     <TouchableOpacity style={styles.iconBtnEdit} onPress={() => portfoyDuzenleBaslat(p)}>
@@ -486,33 +503,34 @@ export default function App() {
           </View>
         )}
 
+        {/* TALEPLER SEKMESİ */}
         {activeTab === 'talepler' && (
           <View>
-            <View style={styles.formCard}>
-              <Text style={styles.cardTitle}>{duzenlenenTalepId ? 'Talep Düzenle' : 'Talep Ekle'}</Text>
-              <TextInput style={styles.input} placeholder="Müşteri Adı" placeholderTextColor="#9ca3af" value={tMusteri} onChangeText={setTMusteri} />
+            <View style={dynStyles.formCard}>
+              <Text style={dynStyles.cardTitle}>{duzenlenenTalepId ? 'Talep Düzenle' : 'Talep Ekle'}</Text>
+              <TextInput style={dynStyles.input} placeholder="Müşteri Adı" placeholderTextColor={isDark ? '#9ca3af' : '#6b7280'} value={tMusteri} onChangeText={setTMusteri} />
               
-              <Text style={styles.labelSub}>Kategori:</Text>
+              <Text style={dynStyles.labelSub}>Kategori:</Text>
               <View style={styles.gridSelector}>
                 {['Konut', 'Arsa', 'İş Yeri', 'Zeytinlik/Tarla'].map(cat => (
-                  <TouchableOpacity key={cat} onPress={() => setTCategory(cat)} style={[styles.gridBtn, tCategory === cat && styles.gridBtnActive]}>
-                    <Text style={[styles.gridBtnText, tCategory === cat && styles.gridBtnTextActive]}>{cat}</Text>
+                  <TouchableOpacity key={cat} onPress={() => setTCategory(cat)} style={[dynStyles.gridBtn, tCategory === cat && dynStyles.gridBtnActive]}>
+                    <Text style={[dynStyles.gridBtnText, tCategory === cat && dynStyles.gridBtnTextActive]}>{cat}</Text>
                   </TouchableOpacity>
                 ))}
               </View>
 
-              <Text style={styles.labelSub}>İşlem Tipi:</Text>
+              <Text style={dynStyles.labelSub}>İşlem Tipi:</Text>
               <View style={styles.tipRow}>
                 {['Satılık', 'Kiralık', 'Kat Karşılığı'].map(st => (
-                  <TouchableOpacity key={st} style={[styles.tipBtn, tTip === st && styles.gelirActive]} onPress={() => setTTip(st)}>
+                  <TouchableOpacity key={st} style={[styles.tipBtn, tTip === st && dynStyles.gelirActive]} onPress={() => setTTip(st)}>
                     <Text style={styles.tipText}>{st}</Text>
                   </TouchableOpacity>
                 ))}
               </View>
 
-              <TextInput style={styles.input} placeholder="Max Bütçe (TL)" placeholderTextColor="#9ca3af" keyboardType="default" value={tMaxFiyat} onChangeText={setTMaxFiyat} />
-              <TextInput style={styles.input} placeholder="Aranan Gayrimenkul" placeholderTextColor="#9ca3af" value={tAranan} onChangeText={setTAranan} />
-              <TextInput style={styles.input} placeholder="Bölge" placeholderTextColor="#9ca3af" value={tKonum} onChangeText={setTKonum} />
+              <TextInput style={dynStyles.input} placeholder="Max Bütçe (TL)" placeholderTextColor={isDark ? '#9ca3af' : '#6b7280'} keyboardType="default" value={tMaxFiyat} onChangeText={setTMaxFiyat} />
+              <TextInput style={dynStyles.input} placeholder="Aranan Gayrimenkul" placeholderTextColor={isDark ? '#9ca3af' : '#6b7280'} value={tAranan} onChangeText={setTAranan} />
+              <TextInput style={dynStyles.input} placeholder="Bölge" placeholderTextColor={isDark ? '#9ca3af' : '#6b7280'} value={tKonum} onChangeText={setTKonum} />
 
               <TouchableOpacity style={styles.saveBtn} onPress={talepKaydet}>
                 <Text style={styles.saveBtnText}>{duzenlenenTalepId ? 'Güncelle' : 'Kaydet'}</Text>
@@ -524,15 +542,15 @@ export default function App() {
               )}
             </View>
 
-            <View style={styles.filterCard}>
+            <View style={dynStyles.filterCard}>
               <TextInput 
-                style={styles.searchInput} 
+                style={dynStyles.searchInput} 
                 placeholder="🔍 Talep ara (Müşteri, bölge)..." 
-                placeholderTextColor="#9ca3af"
+                placeholderTextColor={isDark ? '#9ca3af' : '#6b7280'}
                 value={tSearchQuery}
                 onChangeText={setTSearchQuery}
               />
-              <Text style={styles.filterLabelHeader}>Kategoriye Göre Filtrele:</Text>
+              <Text style={dynStyles.filterLabelHeader}>Kategoriye Göre Filtrele:</Text>
               <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chipRow}>
                 {['TÜMÜ', 'Konut', 'Arsa', 'İş Yeri', 'Zeytinlik/Tarla'].map(cat => (
                   <TouchableOpacity key={cat} onPress={() => setTSelectedCategory(cat)} style={[styles.chip, tSelectedCategory === cat && styles.chipActive]}>
@@ -540,7 +558,7 @@ export default function App() {
                   </TouchableOpacity>
                 ))}
               </ScrollView>
-              <Text style={styles.filterLabelHeader}>İşlem Tipine Göre:</Text>
+              <Text style={dynStyles.filterLabelHeader}>İşlem Tipine Göre:</Text>
               <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chipRow}>
                 {['TÜMÜ', 'Satılık', 'Kiralık', 'Kat Karşılığı'].map(st => (
                   <TouchableOpacity key={st} onPress={() => setTSelectedStatus(st)} style={[styles.subChip, tSelectedStatus === st && styles.subChipActive]}>
@@ -550,22 +568,22 @@ export default function App() {
               </ScrollView>
             </View>
 
-            <Text style={styles.sectionTitle}>Talepler ({filtrelenmisTalepler.length} / {talepler.length})</Text>
+            <Text style={dynStyles.sectionTitle}>Talepler ({filtrelenmisTalepler.length} / {talepler.length})</Text>
             {filtrelenmisTalepler.length === 0 ? (
-              <View style={styles.emptyCard}><Text style={styles.emptyText}>Kayıtlı talep bulunmuyor.</Text></View>
+              <View style={dynStyles.emptyCard}><Text style={dynStyles.emptyText}>Kayıtlı talep bulunmuyor.</Text></View>
             ) : (
               filtrelenmisTalepler.map(talep => (
-                <View key={talep.id} style={styles.listItem}>
+                <View key={talep.id} style={dynStyles.listItem}>
                   <View style={{flex: 1}}>
                     <View style={styles.listHeader}>
-                      <Text style={styles.listTitle}>{talep.musteri}</Text>
+                      <Text style={dynStyles.listTitle}>{talep.musteri}</Text>
                       <View style={{flexDirection: 'row', gap: 4}}>
                         <Text style={styles.listBadge}>{talep.category || 'Konut'}</Text>
                         <Text style={[styles.listBadge, {backgroundColor: '#6A1B29'}]}>{talep.tip}</Text>
                       </View>
                     </View>
-                    <Text style={styles.listSub}>🔍 {talep.aranan} | 📍 {talep.konum}</Text>
-                    <Text style={styles.listDesc}>Max Bütçe: {talep.maxFiyat.toLocaleString()} TL</Text>
+                    <Text style={dynStyles.listSub}>🔍 {talep.aranan} | 📍 {talep.konum}</Text>
+                    <Text style={dynStyles.listDesc}>Max Bütçe: {talep.maxFiyat.toLocaleString()} TL</Text>
                   </View>
                   <View style={styles.actionColumn}>
                     <TouchableOpacity style={styles.iconBtnEdit} onPress={() => talepDuzenleBaslat(talep)}><Text style={styles.iconText}>✏️</Text></TouchableOpacity>
@@ -577,12 +595,13 @@ export default function App() {
           </View>
         )}
 
+        {/* EŞLEŞMELER SEKMESİ */}
         {activeTab === 'eslesme' && (
           <View>
-            <Text style={styles.sectionTitle}>Nokta Atışı Eşleşmeler</Text>
+            <Text style={dynStyles.sectionTitle}>Nokta Atışı Eşleşmeler</Text>
             {bildirimler.length === 0 ? (
-              <View style={styles.emptyCard}>
-                <Text style={styles.emptyText}>Aktif eşleşme bulunmuyor.</Text>
+              <View style={dynStyles.emptyCard}>
+                <Text style={dynStyles.emptyText}>Aktif eşleşme bulunmuyor.</Text>
               </View>
             ) : (
               bildirimler.map(b => (
@@ -594,6 +613,7 @@ export default function App() {
           </View>
         )}
 
+        {/* KASA SEKMESİ */}
         {activeTab === 'kasa' && (
           <View>
             <View style={styles.bakiyeCard}>
@@ -602,8 +622,8 @@ export default function App() {
               <Text style={styles.bakiyeSubText}>Brüt: {toplamVarlik.toLocaleString()} TL | Kredi Borçları: -{toplamKrediBorcu.toLocaleString()} TL</Text>
             </View>
 
-            <View style={styles.formCard}>
-              <Text style={styles.cardTitle}>Finansal Durum Özeti</Text>
+            <View style={dynStyles.formCard}>
+              <Text style={dynStyles.cardTitle}>Finansal Durum Özeti</Text>
               <View style={styles.summaryCardRow}>
                 <View style={styles.summaryCardGelir}>
                   <Text style={styles.summaryLabel}>Toplam Gelir</Text>
@@ -616,41 +636,14 @@ export default function App() {
               </View>
             </View>
 
-            <View style={styles.formCard}>
-              <Text style={styles.cardTitle}>🔒 Güvenlik & Şifre Ayarları</Text>
-              {islemModu === 'pinBelirle' ? (
-                <View>
-                  <TextInput
-                    style={styles.input}
-                    placeholder="Yeni 4 Haneli PIN Şifre"
-                    placeholderTextColor="#9ca3af"
-                    secureTextEntry
-                    keyboardType="numeric"
-                    value={yeniPinInput}
-                    onChangeText={setYeniPinInput}
-                  />
-                  <TouchableOpacity style={styles.saveBtn} onPress={yeniPinKaydet}>
-                    <Text style={styles.saveBtnText}>Yeni Şifreyi Kaydet</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity style={[styles.saveBtn, {backgroundColor: '#374151', marginTop: 8}]} onPress={() => setIslemModu('giris')}>
-                    <Text style={styles.saveBtnText}>İptal</Text>
-                  </TouchableOpacity>
-                </View>
-              ) : (
-                <TouchableOpacity style={[styles.saveBtn, {backgroundColor: '#374151'}]} onPress={() => setIslemModu('pinBelirle')}>
-                  <Text style={styles.saveBtnText}>Uygulama Şifresini (PIN) Değiştir</Text>
-                </TouchableOpacity>
-              )}
-            </View>
-
-            <Text style={styles.sectionTitle}>💳 Banka Kredileri & Taksit Takibi</Text>
+            <Text style={dynStyles.sectionTitle}>💳 Banka Kredileri & Taksit Takibi</Text>
             {krediler.length === 0 ? (
-              <View style={styles.emptyCard}><Text style={styles.emptyText}>Kayıtlı kredi borcu bulunmuyor.</Text></View>
+              <View style={dynStyles.emptyCard}><Text style={dynStyles.emptyText}>Kayıtlı kredi borcu bulunmuyor.</Text></View>
             ) : (
               krediler.map(k => (
-                <View key={k.id} style={styles.creditItem}>
+                <View key={k.id} style={dynStyles.creditItem}>
                   <View style={{flex: 1}}>
-                    <Text style={styles.listTitle}>{k.banka}</Text>
+                    <Text style={dynStyles.listTitle}>{k.banka}</Text>
                     <Text style={styles.creditAmount}>Kalan Borç: {k.tutar.toLocaleString()} TL</Text>
                     <Text style={styles.creditDate}>📅 Ödeme Günü: Her ayın {k.odemeGunu}. günü | Taksit: {k.guncelTaksit} / {k.toplamTaksit}</Text>
                   </View>
@@ -661,26 +654,26 @@ export default function App() {
               ))
             )}
 
-            <View style={styles.formCard}>
-              <Text style={styles.cardTitle}>Yeni Kredi / Borç Ekle</Text>
-              <TextInput style={styles.input} placeholder="Banka Adı / Kredi Türü" placeholderTextColor="#9ca3af" value={krediBanka} onChangeText={setKrediBanka} />
-              <TextInput style={styles.input} placeholder="Kalan Toplam Borç (TL)" placeholderTextColor="#9ca3af" keyboardType="default" value={krediTutar} onChangeText={setKrediTutar} />
-              <TextInput style={styles.input} placeholder="Ödeme Günü (Örn: 15)" placeholderTextColor="#9ca3af" keyboardType="default" value={krediOdemeGunu} onChangeText={setKrediOdemeGunu} />
+            <View style={dynStyles.formCard}>
+              <Text style={dynStyles.cardTitle}>Yeni Kredi / Borç Ekle</Text>
+              <TextInput style={dynStyles.input} placeholder="Banka Adı / Kredi Türü" placeholderTextColor={isDark ? '#9ca3af' : '#6b7280'} value={krediBanka} onChangeText={setKrediBanka} />
+              <TextInput style={dynStyles.input} placeholder="Kalan Toplam Borç (TL)" placeholderTextColor={isDark ? '#9ca3af' : '#6b7280'} keyboardType="default" value={krediTutar} onChangeText={setKrediTutar} />
+              <TextInput style={dynStyles.input} placeholder="Ödeme Günü (Örn: 15)" placeholderTextColor={isDark ? '#9ca3af' : '#6b7280'} keyboardType="default" value={krediOdemeGunu} onChangeText={setKrediOdemeGunu} />
               <View style={{flexDirection: 'row', gap: 10}}>
-                <TextInput style={[styles.input, {flex: 1}]} placeholder="Kaçıncı Taksit (Örn: 5)" placeholderTextColor="#9ca3af" keyboardType="default" value={krediGuncelTaksit} onChangeText={setKrediGuncelTaksit} />
-                <TextInput style={[styles.input, {flex: 1}]} placeholder="Toplam Taksit (Örn: 36)" placeholderTextColor="#9ca3af" keyboardType="default" value={krediToplamTaksit} onChangeText={setKrediToplamTaksit} />
+                <TextInput style={[dynStyles.input, {flex: 1}]} placeholder="Kaçıncı Taksit (Örn: 5)" placeholderTextColor={isDark ? '#9ca3af' : '#6b7280'} keyboardType="default" value={krediGuncelTaksit} onChangeText={setKrediGuncelTaksit} />
+                <TextInput style={[dynStyles.input, {flex: 1}]} placeholder="Toplam Taksit (Örn: 36)" placeholderTextColor={isDark ? '#9ca3af' : '#6b7280'} keyboardType="default" value={krediToplamTaksit} onChangeText={setKrediToplamTaksit} />
               </View>
               <TouchableOpacity style={styles.saveBtn} onPress={krediKaydet}>
                 <Text style={styles.saveBtnText}>Krediyi Kaydet</Text>
               </TouchableOpacity>
             </View>
 
-            <Text style={styles.sectionTitle}>Kasa ve Banka Hesapları</Text>
+            <Text style={dynStyles.sectionTitle}>Kasa ve Banka Hesapları</Text>
             {hesaplar.map(h => (
-              <View key={h.id} style={styles.listItem}>
+              <View key={h.id} style={dynStyles.listItem}>
                 <View>
-                  <Text style={styles.listTitle}>{h.ad}</Text>
-                  <Text style={[styles.listSub, h.bakiye < 0 && { color: '#f87171' }]}>{h.bakiye.toLocaleString()} TL</Text>
+                  <Text style={dynStyles.listTitle}>{h.ad}</Text>
+                  <Text style={[dynStyles.listSub, h.bakiye < 0 && { color: '#f87171' }]}>{h.bakiye.toLocaleString()} TL</Text>
                 </View>
                 <View style={styles.actionRow}>
                   <TouchableOpacity style={styles.iconBtnEdit} onPress={() => hesapDuzenleBaslat(h)}><Text style={styles.iconText}>✏️</Text></TouchableOpacity>
@@ -689,37 +682,37 @@ export default function App() {
               </View>
             ))}
 
-            <View style={styles.formCard}>
-              <Text style={styles.cardTitle}>{duzenlenenHesapId ? 'Hesap Düzenle' : 'Yeni Hesap Ekle'}</Text>
-              <TextInput style={styles.input} placeholder="Hesap Adı" placeholderTextColor="#9ca3af" value={yeniHesapAd} onChangeText={setYeniHesapAd} />
-              <TextInput style={styles.input} placeholder="Başlangıç Bakiyesi (Örn: -500 veya 1000)" placeholderTextColor="#9ca3af" keyboardType="default" value={yeniHesapBakiye} onChangeText={setYeniHesapBakiye} />
+            <View style={dynStyles.formCard}>
+              <Text style={dynStyles.cardTitle}>{duzenlenenHesapId ? 'Hesap Düzenle' : 'Yeni Hesap Ekle'}</Text>
+              <TextInput style={dynStyles.input} placeholder="Hesap Adı" placeholderTextColor={isDark ? '#9ca3af' : '#6b7280'} value={yeniHesapAd} onChangeText={setYeniHesapAd} />
+              <TextInput style={dynStyles.input} placeholder="Başlangıç Bakiyesi (Örn: -500 veya 1000)" placeholderTextColor={isDark ? '#9ca3af' : '#6b7280'} keyboardType="default" value={yeniHesapBakiye} onChangeText={setYeniHesapBakiye} />
               <TouchableOpacity style={styles.saveBtn} onPress={hesapKaydet}>
                 <Text style={styles.saveBtnText}>{duzenlenenHesapId ? 'Güncelle' : 'Kaydet'}</Text>
               </TouchableOpacity>
             </View>
 
-            <View style={styles.formCard}>
-              <Text style={styles.cardTitle}>Gelir / Gider Ekle</Text>
+            <View style={dynStyles.formCard}>
+              <Text style={dynStyles.cardTitle}>Gelir / Gider Ekle</Text>
               <View style={styles.tipRow}>
-                <TouchableOpacity style={[styles.tipBtn, islemTipi === 'gelir' && styles.gelirActive]} onPress={() => setIslemTipi('gelir')}><Text style={styles.tipText}>Gelir</Text></TouchableOpacity>
-                <TouchableOpacity style={[styles.tipBtn, islemTipi === 'gider' && styles.giderActive]} onPress={() => setIslemTipi('gider')}><Text style={styles.tipText}>Gider</Text></TouchableOpacity>
+                <TouchableOpacity style={[styles.tipBtn, islemTipi === 'gelir' && dynStyles.gelirActive]} onPress={() => setIslemTipi('gelir')}><Text style={styles.tipText}>Gelir</Text></TouchableOpacity>
+                <TouchableOpacity style={[styles.tipBtn, islemTipi === 'gider' && dynStyles.giderActive]} onPress={() => setIslemTipi('gider')}><Text style={styles.tipText}>Gider</Text></TouchableOpacity>
               </View>
-              <TextInput style={styles.input} placeholder="Tutar (TL)" placeholderTextColor="#9ca3af" keyboardType="default" value={tutar} onChangeText={setTutar} />
-              <TextInput style={styles.input} placeholder="Açıklama" placeholderTextColor="#9ca3af" value={aciklama} onChangeText={setAciklama} />
+              <TextInput style={dynStyles.input} placeholder="Tutar (TL)" placeholderTextColor={isDark ? '#9ca3af' : '#6b7280'} keyboardType="default" value={tutar} onChangeText={setTutar} />
+              <TextInput style={dynStyles.input} placeholder="Açıklama" placeholderTextColor={isDark ? '#9ca3af' : '#6b7280'} value={aciklama} onChangeText={setAciklama} />
               <TouchableOpacity style={styles.saveBtn} onPress={islemKaydet}>
                 <Text style={styles.saveBtnText}>Kaydet</Text>
               </TouchableOpacity>
             </View>
 
-            <Text style={styles.sectionTitle}>Finansal Hareketler</Text>
+            <Text style={dynStyles.sectionTitle}>Finansal Hareketler</Text>
             {islemGecmisi.length === 0 ? (
-              <View style={styles.emptyCard}><Text style={styles.emptyText}>Henüz finansal hareket yok.</Text></View>
+              <View style={dynStyles.emptyCard}><Text style={dynStyles.emptyText}>Henüz finansal hareket yok.</Text></View>
             ) : (
               islemGecmisi.map(item => (
-                <View key={item.id} style={styles.historyItem}>
+                <View key={item.id} style={dynStyles.historyItem}>
                   <View>
-                    <Text style={styles.historyDesc}>{item.aciklama}</Text>
-                    <Text style={styles.historyDate}>{item.hesap} • {item.tarih}</Text>
+                    <Text style={dynStyles.historyDesc}>{item.aciklama}</Text>
+                    <Text style={dynStyles.historyDate}>{item.hesap} • {item.tarih}</Text>
                   </View>
                   <View style={{alignItems: 'flex-end'}}>
                     <Text style={[styles.historyAmount, item.tip === 'gelir' ? styles.textGelir : styles.textGider]}>
@@ -735,8 +728,55 @@ export default function App() {
           </View>
         )}
 
-        <View style={styles.footerContainer}>
-          <Text style={styles.footerText}>TOCO Ticaret Ofisi tarafından geliştirilmiştir</Text>
+        {/* AYARLAR SEKMESİ (Güvenlik, Şifre ve Tema) */}
+        {activeTab === 'ayarlar' && (
+          <View>
+            <Text style={dynStyles.sectionTitle}>⚙️ Uygulama Ayarları</Text>
+            
+            <View style={dynStyles.formCard}>
+              <Text style={dynStyles.cardTitle}>🎨 Görünüm & Tema</Text>
+              <Text style={dynStyles.labelSub}>Uygulama Tema Modu:</Text>
+              <View style={styles.tipRow}>
+                <TouchableOpacity style={[styles.tipBtn, isDark && dynStyles.gelirActive]} onPress={() => setTheme('dark')}>
+                  <Text style={styles.tipText}>Karanlık Mod 🌙</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={[styles.tipBtn, !isDark && dynStyles.gelirActive]} onPress={() => setTheme('light')}>
+                  <Text style={styles.tipText}>Aydınlık Mod ☀️</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+
+            <View style={dynStyles.formCard}>
+              <Text style={dynStyles.cardTitle}>🔒 Güvenlik & Şifre Yönetimi</Text>
+              {islemModu === 'pinBelirle' ? (
+                <View>
+                  <TextInput
+                    style={dynStyles.input}
+                    placeholder="Yeni 4 Haneli PIN Şifre"
+                    placeholderTextColor={isDark ? '#9ca3af' : '#6b7280'}
+                    secureTextEntry
+                    keyboardType="numeric"
+                    value={yeniPinInput}
+                    onChangeText={setYeniPinInput}
+                  />
+                  <TouchableOpacity style={styles.saveBtn} onPress={yeniPinKaydet}>
+                    <Text style={styles.saveBtnText}>Yeni Şifreyi Kaydet</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity style={[styles.saveBtn, {backgroundColor: '#374151', marginTop: 8}]} onPress={() => setIslemModu('giris')}>
+                    <Text style={styles.saveBtnText}>İptal</Text>
+                  </TouchableOpacity>
+                </View>
+              ) : (
+                <TouchableOpacity style={[styles.saveBtn, {backgroundColor: '#6A1B29'}]} onPress={() => setIslemModu('pinBelirle')}>
+                  <Text style={styles.saveBtnText}>Uygulama Şifresini (PIN) Değiştir</Text>
+                </TouchableOpacity>
+              )}
+            </View>
+          </View>
+        )}
+
+        <View style={dynStyles.footerContainer}>
+          <Text style={dynStyles.footerText}>TOCO Ticaret Ofisi tarafından geliştirilmiştir</Text>
         </View>
 
       </ScrollView>
@@ -744,91 +784,90 @@ export default function App() {
   );
 }
 
+// Tema Bazlı Dinamik Stil Üreteci
+const getDynamicStyles = (isDark) => StyleSheet.create({
+  container: { flex: 1, backgroundColor: isDark ? '#121214' : '#f3f4f6' },
+  lockContainer: { flex: 1, backgroundColor: isDark ? '#121214' : '#f3f4f6', justifyContent: 'center', alignItems: 'center', padding: 20 },
+  lockCard: { width: '100%', maxWidth: 360, backgroundColor: isDark ? '#18181b' : '#ffffff', padding: 24, borderRadius: 16, alignItems: 'center', borderWidth: 1, borderColor: isDark ? '#27272a' : '#e5e7eb' },
+  lockSubText: { color: isDark ? '#a1a1aa' : '#4b5563', fontSize: 13, marginVertical: 15 },
+  biometricBtn: { backgroundColor: isDark ? '#27272a' : '#e5e7eb', width: '100%', padding: 14, borderRadius: 10, alignItems: 'center', marginBottom: 15, borderWidth: 1, borderColor: isDark ? '#3f3f46' : '#d1d5db' },
+  biometricText: { color: isDark ? '#ffffff' : '#1f2937', fontWeight: 'bold', fontSize: 14 },
+  line: { flex: 1, height: 1, backgroundColor: isDark ? '#27272a' : '#e5e7eb' },
+  orText: { color: isDark ? '#71717a' : '#9ca3af', fontSize: 11, marginHorizontal: 10, fontWeight: 'bold' },
+  lockInput: { backgroundColor: isDark ? '#121214' : '#f9fafb', color: isDark ? '#ffffff' : '#111827', width: '100%', padding: 12, borderRadius: 8, marginBottom: 12, borderWidth: 1, borderColor: isDark ? '#27272a' : '#d1d5db', textAlign: 'center', fontSize: 16 },
+  header: { backgroundColor: isDark ? '#18181b' : '#ffffff', padding: 14, alignItems: 'center', borderBottomWidth: 1, borderBottomColor: isDark ? '#27272a' : '#e5e7eb' },
+  tabContainer: { flexDirection: 'row', backgroundColor: isDark ? '#18181b' : '#ffffff', borderBottomWidth: 1, borderBottomColor: isDark ? '#27272a' : '#e5e7eb' },
+  tab: { flex: 1, paddingVertical: 12, alignItems: 'center' },
+  activeTab: { borderBottomWidth: 3, borderBottomColor: '#6A1B29', backgroundColor: isDark ? '#27272a' : '#e5e7eb' },
+  tabText: { color: isDark ? '#a1a1aa' : '#4b5563', fontSize: 11, fontWeight: '600' },
+  activeTabText: { color: isDark ? '#ffffff' : '#111827', fontWeight: 'bold' },
+  formCard: { backgroundColor: isDark ? '#18181b' : '#ffffff', padding: 16, borderRadius: 14, marginBottom: 15, borderWidth: 1, borderColor: isDark ? '#27272a' : '#e5e7eb' },
+  filterCard: { backgroundColor: isDark ? '#1f1f23' : '#ffffff', padding: 14, borderRadius: 12, marginBottom: 15, borderWidth: 1, borderColor: isDark ? '#27272a' : '#e5e7eb' },
+  searchInput: { backgroundColor: isDark ? '#121214' : '#f9fafb', color: isDark ? '#ffffff' : '#111827', padding: 11, borderRadius: 8, marginBottom: 10, borderWidth: 1, borderColor: isDark ? '#27272a' : '#d1d5db', fontSize: 13 },
+  cardTitle: { color: isDark ? '#ffffff' : '#111827', fontSize: 15, fontWeight: 'bold', marginBottom: 12 },
+  labelSub: { color: isDark ? '#d4d4d8' : '#374151', fontSize: 12, marginBottom: 6, fontWeight: '600' },
+  filterLabelHeader: { color: isDark ? '#d4d4d8' : '#374151', fontSize: 11, marginBottom: 4, marginTop: 6, fontWeight: '600' },
+  gridBtn: { width: '48%', paddingVertical: 10, backgroundColor: isDark ? '#27272a' : '#f3f4f6', alignItems: 'center', borderRadius: 8, borderWidth: 1, borderColor: isDark ? '#3f3f46' : '#d1d5db' },
+  gridBtnActive: { backgroundColor: '#6A1B29', borderColor: '#8E2437' },
+  gridBtnText: { color: isDark ? '#d4d4d8' : '#374151', fontSize: 12, fontWeight: '600' },
+  gridBtnTextActive: { color: '#ffffff', fontWeight: 'bold' },
+  tipBtn: { flex: 1, padding: 10, backgroundColor: isDark ? '#27272a' : '#f3f4f6', alignItems: 'center', borderRadius: 8, borderWidth: 1, borderColor: isDark ? '#3f3f46' : '#d1d5db' },
+  gelirActive: { backgroundColor: '#6A1B29', borderColor: '#8E2437' },
+  input: { backgroundColor: isDark ? '#121214' : '#f9fafb', color: isDark ? '#ffffff' : '#111827', padding: 12, borderRadius: 8, marginBottom: 10, borderWidth: 1, borderColor: isDark ? '#27272a' : '#d1d5db', fontSize: 14 },
+  sectionTitle: { color: isDark ? '#ffffff' : '#111827', fontSize: 15, fontWeight: 'bold', marginVertical: 10 },
+  historyItem: { backgroundColor: isDark ? '#18181b' : '#ffffff', padding: 14, borderRadius: 10, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8, borderWidth: 1, borderColor: isDark ? '#27272a' : '#e5e7eb' },
+  historyDesc: { color: isDark ? '#ffffff' : '#111827', fontWeight: '600', fontSize: 13 },
+  historyDate: { color: isDark ? '#a1a1aa' : '#6b7280', fontSize: 11, marginTop: 2 },
+  listItem: { backgroundColor: isDark ? '#18181b' : '#ffffff', padding: 14, borderRadius: 10, marginBottom: 8, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', borderWidth: 1, borderColor: isDark ? '#27272a' : '#e5e7eb' },
+  creditItem: { backgroundColor: isDark ? '#18181b' : '#ffffff', padding: 14, borderRadius: 10, marginBottom: 8, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', borderWidth: 1, borderColor: '#7f1d1d' },
+  listTitle: { color: isDark ? '#ffffff' : '#111827', fontSize: 14, fontWeight: 'bold' },
+  listBadge: { backgroundColor: isDark ? '#27272a' : '#e5e7eb', color: isDark ? '#ffffff' : '#111827', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 5, fontSize: 10, fontWeight: 'bold' },
+  listSub: { color: isDark ? '#d4d4d8' : '#4b5563', fontSize: 12, marginBottom: 2 },
+  listDesc: { color: isDark ? '#a1a1aa' : '#6b7280', fontSize: 12, fontStyle: 'italic' },
+  emptyCard: { backgroundColor: isDark ? '#18181b' : '#ffffff', padding: 20, borderRadius: 10, alignItems: 'center', borderWidth: 1, borderColor: isDark ? '#27272a' : '#e5e7eb' },
+  emptyText: { color: isDark ? '#a1a1aa' : '#6b7280', textAlign: 'center', fontSize: 13 },
+  footerContainer: { marginTop: 25, alignItems: 'center', paddingVertical: 10, borderTopWidth: 1, borderTopColor: isDark ? '#27272a' : '#e5e7eb' },
+  footerText: { color: isDark ? '#71717a' : '#9ca3af', fontSize: 12, fontWeight: '600', letterSpacing: 0.5 },
+  chip: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 16, backgroundColor: isDark ? '#27272a' : '#e5e7eb', marginRight: 6, borderWidth: 1, borderColor: isDark ? '#3f3f46' : '#d1d5db' },
+  chipActive: { backgroundColor: '#6A1B29', borderColor: '#8E2437' },
+  chipText: { color: isDark ? '#d4d4d8' : '#374151', fontSize: 12, fontWeight: '600' },
+  chipTextActive: { color: '#ffffff' },
+  subChip: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8, backgroundColor: isDark ? '#121214' : '#f3f4f6', marginRight: 6, borderWidth: 1, borderColor: isDark ? '#27272a' : '#d1d5db' },
+  subChipActive: { backgroundColor: '#6A1B29', borderColor: '#6A1B29' },
+  subChipText: { color: isDark ? '#d4d4d8' : '#374151', fontSize: 11 },
+  subChipTextActive: { color: '#ffffff', fontWeight: 'bold' }
+});
+
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#121214', paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0 },
-  lockContainer: { flex: 1, backgroundColor: '#121214', justifyContent: 'center', alignItems: 'center', padding: 20 },
-  lockCard: { width: '100%', maxWidth: 360, backgroundColor: '#18181b', padding: 24, borderRadius: 16, alignItems: 'center', borderWidth: 1, borderColor: '#27272a' },
-  lockSubText: { color: '#a1a1aa', fontSize: 13, marginVertical: 15 },
-  biometricBtn: { backgroundColor: '#27272a', width: '100%', padding: 14, borderRadius: 10, alignItems: 'center', marginBottom: 15, borderWidth: 1, borderColor: '#3f3f46' },
-  biometricText: { color: '#ffffff', fontWeight: 'bold', fontSize: 14 },
-  dividerRow: { flexDirection: 'row', alignItems: 'center', marginVertical: 15, width: '100%' },
-  line: { flex: 1, height: 1, backgroundColor: '#27272a' },
-  orText: { color: '#71717a', fontSize: 11, marginHorizontal: 10, fontWeight: 'bold' },
-  lockInput: { backgroundColor: '#121214', color: '#ffffff', width: '100%', padding: 12, borderRadius: 8, marginBottom: 12, borderWidth: 1, borderColor: '#27272a', textAlign: 'center', fontSize: 16 },
-  header: { backgroundColor: '#18181b', padding: 14, alignItems: 'center', borderBottomWidth: 1, borderBottomColor: '#27272a' },
   titleBox: { backgroundColor: '#6A1B29', paddingVertical: 8, paddingHorizontal: 25, borderRadius: 10, borderWidth: 1.5, borderColor: '#8E2437' },
   headerTitle: { color: '#ffffff', fontSize: 20, fontWeight: '900', letterSpacing: 2 },
-  tabContainer: { flexDirection: 'row', backgroundColor: '#18181b', borderBottomWidth: 1, borderBottomColor: '#27272a' },
   tab: { flex: 1, paddingVertical: 12, alignItems: 'center' },
-  activeTab: { borderBottomWidth: 3, borderBottomColor: '#ffffff', backgroundColor: '#27272a' },
-  tabText: { color: '#a1a1aa', fontSize: 11, fontWeight: '600' },
-  activeTabText: { color: '#ffffff', fontWeight: 'bold' },
   content: { padding: 15, paddingBottom: 50 },
   bakiyeCard: { backgroundColor: '#6A1B29', padding: 20, borderRadius: 14, alignItems: 'center', marginBottom: 15 },
   bakiyeLabel: { color: '#f3f4f6', fontSize: 13, fontWeight: '600' },
   bakiyeValue: { color: '#ffffff', fontSize: 26, fontWeight: 'bold', marginTop: 4 },
   bakiyeSubText: { color: '#e5e7eb', fontSize: 11, marginTop: 6 },
-  formCard: { backgroundColor: '#18181b', padding: 16, borderRadius: 14, marginBottom: 15, borderWidth: 1, borderColor: '#27272a' },
-  filterCard: { backgroundColor: '#1f1f23', padding: 14, borderRadius: 12, marginBottom: 15, borderWidth: 1, borderColor: '#27272a' },
-  searchInput: { backgroundColor: '#121214', color: '#ffffff', padding: 11, borderRadius: 8, marginBottom: 10, borderWidth: 1, borderColor: '#27272a', fontSize: 13 },
-  cardTitle: { color: '#ffffff', fontSize: 15, fontWeight: 'bold', marginBottom: 12 },
-  labelSub: { color: '#d4d4d8', fontSize: 12, marginBottom: 6, fontWeight: '600' },
-  filterLabelHeader: { color: '#d4d4d8', fontSize: 11, marginBottom: 4, marginTop: 6, fontWeight: '600' },
   summaryCardRow: { flexDirection: 'row', justifyContent: 'space-between', gap: 10 },
   summaryCardGelir: { flex: 1, backgroundColor: '#064e3b', padding: 14, borderRadius: 10, alignItems: 'center', borderWidth: 1, borderColor: '#047857' },
   summaryCardGider: { flex: 1, backgroundColor: '#7f1d1d', padding: 14, borderRadius: 10, alignItems: 'center', borderWidth: 1, borderColor: '#991b1b' },
   summaryLabel: { color: '#e2e8f0', fontSize: 12, fontWeight: '600' },
   summaryVal: { color: '#ffffff', fontSize: 15, fontWeight: 'bold', marginTop: 4 },
   gridSelector: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginBottom: 12 },
-  gridBtn: { width: '48%', paddingVertical: 10, backgroundColor: '#27272a', alignItems: 'center', borderRadius: 8, borderWidth: 1, borderColor: '#3f3f46' },
-  gridBtnActive: { backgroundColor: '#6A1B29', borderColor: '#8E2437' },
-  gridBtnText: { color: '#d4d4d8', fontSize: 12, fontWeight: '600' },
-  gridBtnTextActive: { color: '#ffffff', fontWeight: 'bold' },
   tipRow: { flexDirection: 'row', marginBottom: 12, gap: 6 },
-  tipBtn: { flex: 1, padding: 10, backgroundColor: '#27272a', alignItems: 'center', borderRadius: 8, borderWidth: 1, borderColor: '#3f3f46' },
-  gelirActive: { backgroundColor: '#6A1B29', borderColor: '#8E2437' },
-  giderActive: { backgroundColor: '#6A1B29', borderColor: '#8E2437' },
   tipText: { color: '#ffffff', fontSize: 12, fontWeight: 'bold' },
-  input: { backgroundColor: '#121214', color: '#ffffff', padding: 12, borderRadius: 8, marginBottom: 10, borderWidth: 1, borderColor: '#27272a', fontSize: 14 },
   saveBtn: { backgroundColor: '#6A1B29', padding: 12, borderRadius: 8, alignItems: 'center' },
   saveBtnText: { color: '#ffffff', fontWeight: 'bold', fontSize: 14 },
-  sectionTitle: { color: '#ffffff', fontSize: 15, fontWeight: 'bold', marginVertical: 10 },
-  historyItem: { backgroundColor: '#18181b', padding: 14, borderRadius: 10, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8, borderWidth: 1, borderColor: '#27272a' },
-  historyDesc: { color: '#ffffff', fontWeight: '600', fontSize: 13 },
-  historyDate: { color: '#a1a1aa', fontSize: 11, marginTop: 2 },
-  historyAmount: { fontSize: 14, fontWeight: 'bold' },
-  textGelir: { color: '#4ade80' },
-  textGider: { color: '#f87171' },
-  listItem: { backgroundColor: '#18181b', padding: 14, borderRadius: 10, marginBottom: 8, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', borderWidth: 1, borderColor: '#27272a' },
-  creditItem: { backgroundColor: '#18181b', padding: 14, borderRadius: 10, marginBottom: 8, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', borderWidth: 1, borderColor: '#7f1d1d' },
   creditAmount: { color: '#f87171', fontSize: 13, fontWeight: 'bold', marginTop: 2 },
   creditDate: { color: '#fbbf24', fontSize: 12, marginTop: 2, fontWeight: '600' },
   erkenKapatBtn: { backgroundColor: '#047857', paddingHorizontal: 10, paddingVertical: 8, borderRadius: 8 },
   erkenKapatText: { color: '#ffffff', fontSize: 11, fontWeight: 'bold' },
   listHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 },
-  listTitle: { color: '#ffffff', fontSize: 14, fontWeight: 'bold' },
-  listBadge: { backgroundColor: '#27272a', color: '#ffffff', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 5, fontSize: 10, fontWeight: 'bold' },
-  listSub: { color: '#d4d4d8', fontSize: 12, marginBottom: 2 },
-  listDesc: { color: '#a1a1aa', fontSize: 12, fontStyle: 'italic' },
   actionColumn: { justifyContent: 'center', alignItems: 'flex-end', marginLeft: 10 },
   actionRow: { flexDirection: 'row', gap: 6 },
   iconBtnEdit: { backgroundColor: '#27272a', paddingHorizontal: 8, paddingVertical: 6, borderRadius: 6, marginBottom: 4, alignItems: 'center', borderWidth: 1, borderColor: '#3f3f46' },
-  iconTest: { fontSize: 14 },
   iconBtnDel: { backgroundColor: '#7f1d1d', paddingHorizontal: 8, paddingVertical: 6, borderRadius: 6, alignItems: 'center' },
   iconText: { fontSize: 14 },
-  emptyCard: { backgroundColor: '#18181b', padding: 20, borderRadius: 10, alignItems: 'center', borderWidth: 1, borderColor: '#27272a' },
-  emptyText: { color: '#a1a1aa', textAlign: 'center', fontSize: 13 },
   alertCard: { backgroundColor: '#065f46', padding: 14, borderRadius: 10, marginBottom: 8, borderWidth: 1, borderColor: '#047857' },
   alertText: { color: '#d1fae5', fontSize: 13, fontWeight: '600', lineHeight: 18 },
-  footerContainer: { marginTop: 25, alignItems: 'center', paddingVertical: 10, borderTopWidth: 1, borderTopColor: '#27272a' },
-  footerText: { color: '#71717a', fontSize: 12, fontWeight: '600', letterSpacing: 0.5 },
-  chipRow: { flexDirection: 'row', marginBottom: 8 },
-  chip: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 16, backgroundColor: '#27272a', marginRight: 6, borderWidth: 1, borderColor: '#3f3f46' },
-  chipActive: { backgroundColor: '#6A1B29', borderColor: '#8E2437' },
-  chipText: { color: '#d4d4d8', fontSize: 12, fontWeight: '600' },
-  chipTextActive: { color: '#ffffff' },
-  subChip: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8, backgroundColor: '#121214', marginRight: 6, borderWidth: 1, borderColor: '#27272a' },
-  subChipActive: { backgroundColor: '#ffffff', borderColor: '#ffffff' },
-  subChipText: { color: '#d4d4d8', fontSize: 11 },
-  subChipTextActive: { color: '#121214', fontWeight: 'bold' }
+  chipRow: { flexDirection: 'row', marginBottom: 8 }
 });
