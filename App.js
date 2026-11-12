@@ -12,6 +12,7 @@ import {
   Platform
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as LocalAuthentication from 'expo-local-authentication';
 
 const normalizeText = (text) => {
   if (!text) return '';
@@ -19,9 +20,14 @@ const normalizeText = (text) => {
 };
 
 export default function App() {
+  const [isUnlocked, setIsUnlocked] = useState(false);
+  const [girilenPin, setGirilenPin] = useState('');
+  const [kayitliPin, setKayitliPin] = useState('1234');
+  const [islemModu, setIslemModu] = useState('giris');
+  const [yeniPinInput, setYeniPinInput] = useState('');
+
   const [activeTab, setActiveTab] = useState('portfoy');
 
-  // Kasa / Banka Hesapları
   const [hesaplar, setHesaplar] = useState([
     { id: '1', ad: 'Nakit Kasa', bakiye: 0 },
     { id: '2', ad: 'Ana Banka Hesabı', bakiye: 0 }
@@ -30,7 +36,6 @@ export default function App() {
   const [yeniHesapBakiye, setYeniHesapBakiye] = useState('');
   const [duzenlenenHesapId, setDuzenlenenHesapId] = useState(null);
 
-  // Kredi ve Taksit Takip State'leri
   const [krediler, setKrediler] = useState([]);
   const [krediBanka, setKrediBanka] = useState('');
   const [krediTutar, setKrediTutar] = useState('');
@@ -72,7 +77,24 @@ export default function App() {
 
   const [bildirimler, setBildirimler] = useState([]);
 
-  // Veri Yükleme (AsyncStorage - Kesin Koruma)
+  const parmakIziIleGiris = async () => {
+    try {
+      const compatible = await LocalAuthentication.hasHardwareAsync();
+      if (!compatible) return;
+      const enrolled = await LocalAuthentication.isEnrolledAsync();
+      if (!enrolled) return;
+      const result = await LocalAuthentication.authenticateAsync({
+        promptMessage: 'PATRON Uygulamasının Kilidini Aç',
+        fallbackLabel: 'Şifre Kullan',
+      });
+      if (result.success) {
+        setIsUnlocked(true);
+      }
+    } catch (e) {
+      console.log('Biyometrik hata', e);
+    }
+  };
+
   useEffect(() => {
     const verileriYukle = async () => {
       try {
@@ -81,12 +103,16 @@ export default function App() {
         const kayitliPortfoyler = await AsyncStorage.getItem('@toco_portfoyler');
         const kayitliTalepler = await AsyncStorage.getItem('@toco_talepler');
         const kayitliKrediler = await AsyncStorage.getItem('@toco_krediler');
+        const savedPin = await AsyncStorage.getItem('@toco_app_pin');
 
         if (kayitliHesaplar) setHesaplar(JSON.parse(kayitliHesaplar));
         if (kayitliIslemler) setIslemGecmisi(JSON.parse(kayitliIslemler));
         if (kayitliPortfoyler) setPortfoyler(JSON.parse(kayitliPortfoyler));
         if (kayitliTalepler) setTalepler(JSON.parse(kayitliTalepler));
         if (kayitliKrediler) setKrediler(JSON.parse(kayitliKrediler));
+        if (savedPin) setKayitliPin(savedPin);
+
+        parmakIziIleGiris();
       } catch (e) {
         console.log('Veri yükleme hatası', e);
       }
@@ -162,6 +188,27 @@ export default function App() {
   const islemGelirToplami = islemGecmisi.filter(i => i.tip === 'gelir').reduce((t, i) => t + i.tutar, 0);
   const toplamGelir = Math.max(0, hesaplarBaslangicToplami) + islemGelirToplami;
   const toplamGider = islemGecmisi.filter(i => i.tip === 'gider').reduce((t, i) => t + i.tutar, 0);
+
+  const pinleGirisYap = () => {
+    if (girilenPin === kayitliPin) {
+      setIsUnlocked(true);
+      setGirilenPin('');
+    } else {
+      Alert.alert('Hata', 'Hatalı şifre girdiniz!');
+      setGirilenPin('');
+    }
+  };
+
+  const yeniPinKaydet = async () => {
+    if (yeniPinInput.length < 4) {
+      return Alert.alert('Hata', 'Şifre en az 4 haneli olmalıdır.');
+    }
+    setKayitliPin(yeniPinInput);
+    await AsyncStorage.setItem('@toco_app_pin', yeniPinInput);
+    setYeniPinInput('');
+    setIslemModu('giris');
+    Alert.alert('Başarılı', 'Uygulama şifreniz güncellendi.');
+  };
 
   const hesapKaydet = () => {
     if (!yeniHesapAd) return Alert.alert('Hata', 'Hesap adı giriniz.');
@@ -278,6 +325,43 @@ export default function App() {
     setTMusteri(t.musteri); setTTip(t.tip); setTCategory(t.category || 'Konut'); setTMaxFiyat(t.maxFiyat.toString()); setTAranan(t.aranan); setTKonum(t.konum);
   };
 
+  if (!isUnlocked) {
+    return (
+      <SafeAreaView style={styles.lockContainer}>
+        <StatusBar barStyle="light-content" backgroundColor="#121214" />
+        <View style={styles.lockCard}>
+          <View style={styles.titleBox}>
+            <Text style={styles.headerTitle}>PATRON</Text>
+          </View>
+          <Text style={styles.lockSubText}>TOCO Ticaret Ofisi Güvenli Giriş</Text>
+
+          <TouchableOpacity style={styles.biometricBtn} onPress={parmakIziIleGiris}>
+            <Text style={styles.biometricText}>👆 Parmak İzi ile Aç</Text>
+          </TouchableOpacity>
+
+          <View style={styles.dividerRow}>
+            <View style={styles.line} />
+            <Text style={styles.orText}>VEYA ŞİFRE GİRİN</Text>
+            <View style={styles.line} />
+          </View>
+
+          <TextInput
+            style={styles.lockInput}
+            placeholder="Uygulama Şifresi (PIN)"
+            placeholderTextColor="#9ca3af"
+            secureTextEntry
+            keyboardType="numeric"
+            value={girilenPin}
+            onChangeText={setGirilenPin}
+          />
+          <TouchableOpacity style={styles.saveBtn} onPress={pinleGirisYap}>
+            <Text style={styles.saveBtnText}>Giriş Yap</Text>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor="#0b0f19" />
@@ -307,7 +391,6 @@ export default function App() {
 
       <ScrollView contentContainerStyle={styles.content}>
         
-        {/* PORTFÖY SEKMESİ */}
         {activeTab === 'portfoy' && (
           <View>
             <View style={styles.formCard}>
@@ -403,7 +486,6 @@ export default function App() {
           </View>
         )}
 
-        {/* TALEPLER SEKMESİ */}
         {activeTab === 'talepler' && (
           <View>
             <View style={styles.formCard}>
@@ -495,7 +577,6 @@ export default function App() {
           </View>
         )}
 
-        {/* EŞLEŞMELER SEKMESİ */}
         {activeTab === 'eslesme' && (
           <View>
             <Text style={styles.sectionTitle}>Nokta Atışı Eşleşmeler</Text>
@@ -513,7 +594,6 @@ export default function App() {
           </View>
         )}
 
-        {/* KASA & BANKA SEKMESİ (EN SON SEKME) */}
         {activeTab === 'kasa' && (
           <View>
             <View style={styles.bakiyeCard}>
@@ -536,7 +616,33 @@ export default function App() {
               </View>
             </View>
 
-            {/* BANKA KREDİLERİ & TAKSİT VE ERKEN KAPATMA */}
+            <View style={styles.formCard}>
+              <Text style={styles.cardTitle}>🔒 Güvenlik & Şifre Ayarları</Text>
+              {islemModu === 'pinBelirle' ? (
+                <View>
+                  <TextInput
+                    style={styles.input}
+                    placeholder="Yeni 4 Haneli PIN Şifre"
+                    placeholderTextColor="#9ca3af"
+                    secureTextEntry
+                    keyboardType="numeric"
+                    value={yeniPinInput}
+                    onChangeText={setYeniPinInput}
+                  />
+                  <TouchableOpacity style={styles.saveBtn} onPress={yeniPinKaydet}>
+                    <Text style={styles.saveBtnText}>Yeni Şifreyi Kaydet</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity style={[styles.saveBtn, {backgroundColor: '#374151', marginTop: 8}]} onPress={() => setIslemModu('giris')}>
+                    <Text style={styles.saveBtnText}>İptal</Text>
+                  </TouchableOpacity>
+                </View>
+              ) : (
+                <TouchableOpacity style={[styles.saveBtn, {backgroundColor: '#374151'}]} onPress={() => setIslemModu('pinBelirle')}>
+                  <Text style={styles.saveBtnText}>Uygulama Şifresini (PIN) Değiştir</Text>
+                </TouchableOpacity>
+              )}
+            </View>
+
             <Text style={styles.sectionTitle}>💳 Banka Kredileri & Taksit Takibi</Text>
             {krediler.length === 0 ? (
               <View style={styles.emptyCard}><Text style={styles.emptyText}>Kayıtlı kredi borcu bulunmuyor.</Text></View>
@@ -640,6 +746,15 @@ export default function App() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#121214', paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0 },
+  lockContainer: { flex: 1, backgroundColor: '#121214', justifyContent: 'center', alignItems: 'center', padding: 20 },
+  lockCard: { width: '100%', maxWidth: 360, backgroundColor: '#18181b', padding: 24, borderRadius: 16, alignItems: 'center', borderWidth: 1, borderColor: '#27272a' },
+  lockSubText: { color: '#a1a1aa', fontSize: 13, marginVertical: 15 },
+  biometricBtn: { backgroundColor: '#27272a', width: '100%', padding: 14, borderRadius: 10, alignItems: 'center', marginBottom: 15, borderWidth: 1, borderColor: '#3f3f46' },
+  biometricText: { color: '#ffffff', fontWeight: 'bold', fontSize: 14 },
+  dividerRow: { flexDirection: 'row', alignItems: 'center', marginVertical: 15, width: '100%' },
+  line: { flex: 1, height: 1, backgroundColor: '#27272a' },
+  orText: { color: '#71717a', fontSize: 11, marginHorizontal: 10, fontWeight: 'bold' },
+  lockInput: { backgroundColor: '#121214', color: '#ffffff', width: '100%', padding: 12, borderRadius: 8, marginBottom: 12, borderWidth: 1, borderColor: '#27272a', textAlign: 'center', fontSize: 16 },
   header: { backgroundColor: '#18181b', padding: 14, alignItems: 'center', borderBottomWidth: 1, borderBottomColor: '#27272a' },
   titleBox: { backgroundColor: '#6A1B29', paddingVertical: 8, paddingHorizontal: 25, borderRadius: 10, borderWidth: 1.5, borderColor: '#8E2437' },
   headerTitle: { color: '#ffffff', fontSize: 20, fontWeight: '900', letterSpacing: 2 },
@@ -698,6 +813,7 @@ const styles = StyleSheet.create({
   actionColumn: { justifyContent: 'center', alignItems: 'flex-end', marginLeft: 10 },
   actionRow: { flexDirection: 'row', gap: 6 },
   iconBtnEdit: { backgroundColor: '#27272a', paddingHorizontal: 8, paddingVertical: 6, borderRadius: 6, marginBottom: 4, alignItems: 'center', borderWidth: 1, borderColor: '#3f3f46' },
+  iconTest: { fontSize: 14 },
   iconBtnDel: { backgroundColor: '#7f1d1d', paddingHorizontal: 8, paddingVertical: 6, borderRadius: 6, alignItems: 'center' },
   iconText: { fontSize: 14 },
   emptyCard: { backgroundColor: '#18181b', padding: 20, borderRadius: 10, alignItems: 'center', borderWidth: 1, borderColor: '#27272a' },
