@@ -648,12 +648,10 @@ export default function App() {
 
         {activeTab === 'kasa' && (
           <View>
-            {/* Dinamik Arka Planlı (Yeşil/Kırmızı) Çizgi Grafik Özeti Kartı */}
             <View style={[styles.bakiyeCard, isNetPozitif ? styles.bakiyeCardGreen : styles.bakiyeCardRed]}>
               <Text style={styles.bakiyeLabel}>Toplam Net Varlık</Text>
               <Text style={styles.bakiyeValue}>{netVarlik.toLocaleString()} TL</Text>
               
-              {/* Modern Çizgi Grafik Temsili */}
               <View style={styles.lineChartContainer}>
                 <View style={styles.lineChartTrack}>
                   <View style={[styles.lineChartPoint, { left: '10%', bottom: '30%' }]} />
@@ -690,7 +688,7 @@ export default function App() {
               krediler.map(k => (
                 <View key={k.id} style={dynStyles.creditItem}>
                   <View style={{flex: 1}}>
-                    <Text style={dynStyles.listTitle}>{k.banka}</Text>
+                    <Text style={styles.listTitle}>{k.banka}</Text>
                     <Text style={styles.creditAmount}>Kalan Borç: {k.tutar.toLocaleString()} TL</Text>
                     <Text style={styles.creditDate}>📅 Ödeme Günü: Her ayın {k.odemeGunu}. günü | Taksit: {k.guncelTaksit} / {k.toplamTaksit}</Text>
                   </View>
@@ -760,10 +758,10 @@ export default function App() {
               <View style={dynStyles.emptyCard}><Text style={dynStyles.emptyText}>Henüz finansal hareket yok.</Text></View>
             ) : (
               islemGecmisi.map(item => (
-                <View key={item.id} style={dynStyles.historyItem}>
+                <View key={item.id} style={styles.historyItem}>
                   <View>
-                    <Text style={dynStyles.historyDesc}>{item.aciklama}</Text>
-                    <Text style={dynStyles.historyDate}>{item.hesap} • {item.tarih}</Text>
+                    <Text style={styles.historyDesc}>{item.aciklama}</Text>
+                    <Text style={styles.historyDate}>{item.hesap} • {item.tarih}</Text>
                   </View>
                   <View style={{alignItems: 'flex-end'}}>
                     <Text style={[styles.historyAmount, item.tip === 'gelir' ? styles.textGelir : styles.textGider]}>
@@ -846,7 +844,7 @@ const getDynamicStyles = (isDark) => StyleSheet.create({
   tabContainer: { flexDirection: 'row', backgroundColor: isDark ? '#18181b' : '#ffffff', borderBottomWidth: 1, borderBottomColor: isDark ? '#27272a' : '#e5e7eb' },
   tab: { flex: 1, paddingVertical: 12, alignItems: 'center' },
   activeTab: { borderBottomWidth: 3, borderBottomColor: '#6A1B29', backgroundColor: isDark ? '#27272a' : '#f9fafb' },
-  tabText: { color: isDark ? '#a1a1aa' : '#4b5563', fontSize: 11, fontWeight: '600' },
+  tabText: { color: isDark ? '#d4d4d8' : '#4b5563', fontSize: 11, fontWeight: '600' },
   activeTabText: { color: isDark ? '#ffffff' : '#111827', fontWeight: 'bold' },
   formCard: { backgroundColor: isDark ? '#18181b' : '#ffffff', padding: 16, borderRadius: 14, marginBottom: 15, borderWidth: 1, borderColor: isDark ? '#27272a' : '#e5e7eb' },
   filterCard: { backgroundColor: isDark ? '#18181b' : '#ffffff', padding: 14, borderRadius: 12, marginBottom: 15, borderWidth: 1, borderColor: isDark ? '#27272a' : '#e5e7eb' },
@@ -856,16 +854,13 @@ const getDynamicStyles = (isDark) => StyleSheet.create({
   filterLabelHeader: { color: isDark ? '#f4f4f5' : '#1f2937', fontSize: 11, marginBottom: 4, marginTop: 6, fontWeight: '600' },
   input: { backgroundColor: isDark ? '#121214' : '#f9fafb', color: isDark ? '#ffffff' : '#111827', padding: 12, borderRadius: 8, marginBottom: 10, borderWidth: 1, borderColor: isDark ? '#3f3f46' : '#d1d5db', fontSize: 14 },
   sectionTitle: { color: isDark ? '#ffffff' : '#111827', fontSize: 15, fontWeight: 'bold', marginVertical: 10 },
-  historyItem: { backgroundColor: isDark ? '#18181b' : '#ffffff', padding: 14, borderRadius: 10, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8, borderWidth: 1, borderColor: isDark ? '#27272a' : '#e5e7eb' },
-  historyDesc: { color: isDark ? '#ffffff' : '#111827', fontWeight: '600', fontSize: 13 },
-  historyDate: { color: isDark ? '#a1a1aa' : '#6b7280', fontSize: 11, marginTop: 2 },
   listItem: { backgroundColor: isDark ? '#18181b' : '#ffffff', padding: 14, borderRadius: 10, marginBottom: 8, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', borderWidth: 1, borderColor: isDark ? '#27272a' : '#e5e7eb' },
   creditItem: { backgroundColor: isDark ? '#18181b' : '#ffffff', padding: 14, borderRadius: 10, marginBottom: 8, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', borderWidth: 1, borderColor: '#7f1d1d' },
   listTitle: { color: isDark ? '#ffffff' : '#111827', fontSize: 14, fontWeight: 'bold' },
   listSub: { color: isDark ? '#e4e4e7' : '#4b5563', fontSize: 12, marginBottom: 2, fontWeight: '500' },
   listDesc: { color: isDark ? '#d4d4d8' : '#6b7280', fontSize: 12, fontStyle: 'italic' },
   emptyCard: { backgroundColor: isDark ? '#18181b' : '#ffffff', padding: 20, borderRadius: 10, alignItems: 'center', borderWidth: 1, borderColor: isDark ? '#27272a' : '#e5e7eb' },
-  emptyText: { color: isDark ? '#a1a1aa' : '#6b7280', textAlign: 'center', fontSize: 13 },
+  emptyText: { color: isDark ? '#d4d4d8' : '#6b7280', textAlign: 'center', fontSize: 13 },
   footerContainer: { marginTop: 25, alignItems: 'center', paddingVertical: 10, borderTopWidth: 1, borderTopColor: isDark ? '#27272a' : '#e5e7eb' },
   footerText: { color: isDark ? '#a1a1aa' : '#9ca3af', fontSize: 12, fontWeight: '600', letterSpacing: 0.5 },
   chip: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 16, backgroundColor: isDark ? '#27272a' : '#f3f4f6', marginRight: 6, borderWidth: 1, borderColor: isDark ? '#3f3f46' : '#d1d5db' },
@@ -919,5 +914,11 @@ const styles = StyleSheet.create({
   iconText: { fontSize: 14 },
   alertCard: { backgroundColor: '#065f46', padding: 14, borderRadius: 10, marginBottom: 8, borderWidth: 1, borderColor: '#047857' },
   alertText: { color: '#d1fae5', fontSize: 13, fontWeight: '600', lineHeight: 18 },
-  chipRow: { flexDirection: 'row', marginBottom: 8 }
+  chipRow: { flexDirection: 'row', marginBottom: 8 },
+  historyItem: { backgroundColor: '#18181b', padding: 14, borderRadius: 10, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8, borderWidth: 1, borderColor: '#27272a' },
+  historyDesc: { color: '#ffffff', fontWeight: '600', fontSize: 13 },
+  historyDate: { color: '#a1a1aa', fontSize: 11, marginTop: 2 },
+  historyAmount: { fontSize: 14, fontWeight: 'bold' },
+  textGelir: { color: '#4ade80' },
+  textGider: { color: '#f87171' }
 });
