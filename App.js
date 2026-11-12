@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   StyleSheet,
   Text,
@@ -11,6 +11,12 @@ import {
   Alert,
   Platform
 } from 'react-native';
+
+// Türkçe karakter duyarsız arama için normalize fonksiyonu
+const normalizeText = (text) => {
+  if (!text) return '';
+  return text.toString().toLocaleLowerCase('tr-TR').trim();
+};
 
 export default function App() {
   const [lang, setLang] = useState('tr');
@@ -31,21 +37,34 @@ export default function App() {
   const [seciliHesap, setSeciliHesap] = useState('Nakit Kasa');
   const [islemGecmisi, setIslemGecmisi] = useState([]);
 
+  // Portföy State'leri
   const [portfoyler, setPortfoyler] = useState([]);
   const [pBaslik, setPBaslik] = useState('');
-  const [pTip, setPTip] = useState('Satılık');
+  const [pTip, setPTip] = useState('Satılık'); // Satılık, Kiralık, Kat Karşılığı
+  const [pCategory, setPCategory] = useState('Konut'); // Konut, Arsa, İş Yeri, Zeytinlik/Tarla
   const [pFiyat, setPFiyat] = useState('');
   const [pKonum, setPKonum] = useState('');
   const [pAciklama, setPAciklama] = useState('');
   const [duzenlenenPortfoyId, setDuzenlenenPortfoyId] = useState(null);
 
+  // Talep State'leri
   const [talepler, setTalepler] = useState([]);
   const [tMusteri, setTMusteri] = useState('');
   const [tTip, setTTip] = useState('Satılık');
+  const [tCategory, setTCategory] = useState('Konut');
   const [tMaxFiyat, setTMaxFiyat] = useState('');
   const [tAranan, setTAranan] = useState('');
   const [tKonum, setTKonum] = useState('');
   const [duzenlenenTalepId, setDuzenlenenTalepId] = useState(null);
+
+  // Filtreleme State'leri
+  const [pSearchQuery, setPSearchQuery] = useState('');
+  const [pSelectedCategory, setPSelectedCategory] = useState('TÜMÜ');
+  const [pSelectedStatus, setPSelectedStatus] = useState('TÜMÜ');
+
+  const [tSearchQuery, setTSearchQuery] = useState('');
+  const [tSelectedCategory, setTSelectedCategory] = useState('TÜMÜ');
+  const [tSelectedStatus, setTSelectedStatus] = useState('TÜMÜ');
 
   const [bildirimler, setBildirimler] = useState([]);
 
@@ -59,7 +78,7 @@ export default function App() {
       hesaplarim: 'Kasa ve Banka Hesapları',
       yeniHesap: 'Yeni Hesap Ekle',
       hesapAdi: 'Hesap Adı',
-      ilkBakiye: 'Başlangıç Bakiyesi (TL) [Eksi olabilir]',
+      ilkBakiye: 'Başlangıç Bakiyesi (TL)',
       ekleKaydet: 'Kaydet',
       guncelle: 'Güncelle',
       iptal: 'İptal',
@@ -73,7 +92,7 @@ export default function App() {
       portfoyEkle: 'Portföy Ekle',
       pBaslik: 'Portföy Başlığı',
       pFiyat: 'Fiyat (TL)',
-      pKonum: 'Konum',
+      pKonum: 'Konum / Bölge',
       pAciklama: 'Açıklama',
       talepEkle: 'Talep Ekle',
       tMusteri: 'Müşteri Adı',
@@ -124,25 +143,35 @@ export default function App() {
 
   // Toplam varlık hesaplama
   const toplamVarlik = hesaplar.reduce((toplam, h) => toplam + h.bakiye, 0);
-
-  // Finansal özet: Hesapların başlangıç bakiyeleri ve yapılan gelirler toplam gelire yansır
   const hesaplarBaslangicToplami = hesaplar.reduce((t, h) => t + h.bakiye, 0);
   const islemGelirToplami = islemGecmisi.filter(i => i.tip === 'gelir').reduce((t, i) => t + i.tutar, 0);
   const toplamGelir = Math.max(0, hesaplarBaslangicToplami) + islemGelirToplami;
   const toplamGider = islemGecmisi.filter(i => i.tip === 'gider').reduce((t, i) => t + i.tutar, 0);
 
+  // Akıllı Eşleştirme Motoru (%15 Fiyat Esnekliği + Kategori + Bölge Uyumu)
   useEffect(() => {
     let yeniEslesmeler = [];
     portfoyler.forEach(portfoy => {
       talepler.forEach(talep => {
-        const fiyatUygun = portfoy.fiyat <= Number(talep.maxFiyat);
-        const tipUygun = portfoy.tip.toLowerCase() === talep.tip.toLowerCase();
-        const konumUygun = portfoy.konum.toLowerCase().includes(talep.konum.toLowerCase());
+        const pCat = normalizeText(portfoy.category || 'konut');
+        const tCat = normalizeText(talep.category || 'konut');
+        const kategoriUygun = pCat === tCat;
 
-        if (fiyatUygun && tipUygun && konumUygun) {
+        const tipUygun = normalizeText(portfoy.tip) === normalizeText(talep.tip);
+        
+        const pKonumStr = normalizeText(portfoy.konum);
+        const tKonumStr = normalizeText(talep.konum);
+        const konumUygun = !tKonumStr || pKonumStr.includes(tKonumStr) || tKonumStr.includes(pKonumStr);
+
+        const pFiyatNum = Number(portfoy.fiyat) || 0;
+        const tMaxFiyatNum = Number(talep.maxFiyat) || 0;
+        // Kat karşılığında fiyat şartı aranmaz, diğerlerinde %15 toleranslı bütçe kontrolü
+        const fiyatUygun = portfoy.tip === 'Kat Karşılığı' || tMaxFiyatNum === 0 || pFiyatNum <= tMaxFiyatNum * 1.15;
+
+        if (kategoriUygun && tipUygun && konumUygun && fiyatUygun) {
           yeniEslesmeler.push({
             id: `${portfoy.id}-${talep.id}`,
-            mesaj: `🎯 ${talep.musteri} (${talep.aranan} - max ${talep.maxFiyat.toLocaleString()} TL) ile "${portfoy.baslik}" (${portfoy.fiyat.toLocaleString()} TL) uyuşuyor!`
+            mesaj: `🎯 Müşteri: ${talep.musteri} (${talep.aranan} - Max: ${tMaxFiyatNum.toLocaleString()} TL) ile Portföy: "${portfoy.baslik}" (${pFiyatNum.toLocaleString()} TL - ${portfoy.konum}) eşleşti!`
           });
         }
       });
@@ -150,9 +179,41 @@ export default function App() {
     setBildirimler(yeniEslesmeler);
   }, [portfoyler, talepler]);
 
+  // Filtrelenmiş Portföyler
+  const filtrelenmisPortfoyler = useMemo(() => {
+    return portfoyler.filter(p => {
+      const query = normalizeText(pSearchQuery);
+      const searchMatch = !query || 
+        normalizeText(p.baslik).includes(query) || 
+        normalizeText(p.konum).includes(query) || 
+        normalizeText(p.aciklama).includes(query);
+
+      const catMatch = pSelectedCategory === 'TÜMÜ' || normalizeText(p.category) === normalizeText(pSelectedCategory);
+      const statusMatch = pSelectedStatus === 'TÜMÜ' || normalizeText(p.tip) === normalizeText(pSelectedStatus);
+
+      return searchMatch && catMatch && statusMatch;
+    });
+  }, [portfoyler, pSearchQuery, pSelectedCategory, pSelectedStatus]);
+
+  // Filtrelenmiş Talepler
+  const filtrelenmisTalepler = useMemo(() => {
+    return talepler.filter(t => {
+      const query = normalizeText(tSearchQuery);
+      const searchMatch = !query || 
+        normalizeText(t.musteri).includes(query) || 
+        normalizeText(t.aranan).includes(query) || 
+        normalizeText(t.konum).includes(query);
+
+      const catMatch = tSelectedCategory === 'TÜMÜ' || normalizeText(t.category) === normalizeText(tSelectedCategory);
+      const statusMatch = tSelectedStatus === 'TÜMÜ' || normalizeText(t.tip) === normalizeText(tSelectedStatus);
+
+      return searchMatch && catMatch && statusMatch;
+    });
+  }, [talepler, tSearchQuery, tSelectedCategory, tSelectedStatus]);
+
   const hesapKaydet = () => {
     if (!yeniHesapAd) return Alert.alert('Hata', 'Hesap adı giriniz.');
-    const bakiyeNum = Number(yeniHesapBakiye) || 0; // Negatif (eksi) değerlere izin verir
+    const bakiyeNum = Number(yeniHesapBakiye) || 0;
 
     if (duzenlenenHesapId) {
       setHesaplar(hesaplar.map(h => h.id === duzenlenenHesapId ? { ...h, ad: yeniHesapAd, bakiye: bakiyeNum } : h));
@@ -212,10 +273,10 @@ export default function App() {
     const fiyatNum = Number(pFiyat);
 
     if (duzenlenenPortfoyId) {
-      setPortfoyler(portfoyler.map(p => p.id === duzenlenenPortfoyId ? { ...p, baslik: pBaslik, tip: pTip, fiyat: fiyatNum, konum: pKonum, aciklama: pAciklama } : p));
+      setPortfoyler(portfoyler.map(p => p.id === duzenlenenPortfoyId ? { ...p, baslik: pBaslik, tip: pTip, category: pCategory, fiyat: fiyatNum, konum: pKonum, aciklama: pAciklama } : p));
       setDuzenlenenPortfoyId(null);
     } else {
-      const yeniP = { id: Date.now().toString(), baslik: pBaslik, tip: pTip, fiyat: fiyatNum, konum: pKonum, aciklama: pAciklama };
+      const yeniP = { id: Date.now().toString(), baslik: pBaslik, tip: pTip, category: pCategory, fiyat: fiyatNum, konum: pKonum, aciklama: pAciklama };
       setPortfoyler([yeniP, ...portfoyler]);
     }
     setPBaslik(''); setPFiyat(''); setPKonum(''); setPAciklama('');
@@ -224,7 +285,7 @@ export default function App() {
   const portfoySil = (id) => setPortfoyler(portfoyler.filter(p => p.id !== id));
   const portfoyDuzenleBaslat = (p) => {
     setDuzenlenenPortfoyId(p.id);
-    setPBaslik(p.baslik); setPTip(p.tip); setPFiyat(p.fiyat.toString()); setPKonum(p.konum); setPAciklama(p.aciklama);
+    setPBaslik(p.baslik); setPTip(p.tip); setPCategory(p.category || 'Konut'); setPFiyat(p.fiyat.toString()); setPKonum(p.konum); setPAciklama(p.aciklama);
   };
 
   const talepKaydet = () => {
@@ -232,10 +293,10 @@ export default function App() {
     const busteriMax = Number(tMaxFiyat);
 
     if (duzenlenenTalepId) {
-      setTalepler(talepler.map(t => t.id === duzenlenenTalepId ? { ...t, musteri: tMusteri, tip: tTip, maxFiyat: busteriMax, aranan: tAranan, konum: tKonum } : t));
+      setTalepler(talepler.map(t => t.id === duzenlenenTalepId ? { ...t, musteri: tMusteri, tip: tTip, category: tCategory, maxFiyat: busteriMax, aranan: tAranan, konum: tKonum } : t));
       setDuzenlenenTalepId(null);
     } else {
-      const yeniT = { id: Date.now().toString(), musteri: tMusteri, tip: tTip, maxFiyat: busteriMax, aranan: tAranan, konum: tKonum };
+      const yeniT = { id: Date.now().toString(), musteri: tMusteri, tip: tTip, category: tCategory, maxFiyat: busteriMax, aranan: tAranan, konum: tKonum };
       setTalepler([yeniT, ...talepler]);
     }
     setTMusteri(''); setTMaxFiyat(''); setTAranan(''); setTKonum('');
@@ -244,14 +305,14 @@ export default function App() {
   const talepSil = (id) => setTalepler(talepler.filter(t => t.id !== id));
   const talepDuzenleBaslat = (t) => {
     setDuzenlenenTalepId(t.id);
-    setTMusteri(t.musteri); setTTip(t.tip); setTMaxFiyat(t.maxFiyat.toString()); setTAranan(t.aranan); setTKonum(t.konum);
+    setTMusteri(t.musteri); setTTip(t.tip); setTCategory(t.category || 'Konut'); setTMaxFiyat(t.maxFiyat.toString()); setTAranan(t.aranan); setTKonum(t.konum);
   };
 
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor="#0b0f19" />
       
-      {/* Üst Başlık - PATRON: Ortada, Kalın ve Vişne Çürüğü Kutu İçerisinde */}
+      {/* Üst Başlık - PATRON */}
       <View style={styles.header}>
         <View style={styles.titleBox}>
           <Text style={styles.headerTitle}>PATRON</Text>
@@ -373,10 +434,27 @@ export default function App() {
             <View style={styles.formCard}>
               <Text style={styles.cardTitle}>{duzenlenenPortfoyId ? 'Portföy Düzenle' : text.portfoyEkle}</Text>
               <TextInput style={styles.input} placeholder={text.pBaslik} placeholderTextColor="#64748b" value={pBaslik} onChangeText={setPBaslik} />
+              
+              {/* Kategori Seçimi */}
+              <Text style={styles.labelSub}>Kategori:</Text>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chipRow}>
+                {['Konut', 'Arsa', 'İş Yeri', 'Zeytinlik/Tarla'].map(cat => (
+                  <TouchableOpacity key={cat} onPress={() => setPCategory(cat)} style={[styles.chip, pCategory === cat && styles.chipActive]}>
+                    <Text style={[styles.chipText, pCategory === cat && styles.chipTextActive]}>{cat}</Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+
+              {/* İşlem Tipi */}
+              <Text style={styles.labelSub}>İşlem Tipi:</Text>
               <View style={styles.tipRow}>
-                <TouchableOpacity style={[styles.tipBtn, pTip === 'Satılık' && styles.gelirActive]} onPress={() => setPTip('Satılık')}><Text style={styles.tipText}>Satılık</Text></TouchableOpacity>
-                <TouchableOpacity style={[styles.tipBtn, pTip === 'Kiralık' && styles.giderActive]} onPress={() => setPTip('Kiralık')}><Text style={styles.tipText}>Kiralık</Text></TouchableOpacity>
+                {['Satılık', 'Kiralık', 'Kat Karşılığı'].map(st => (
+                  <TouchableOpacity key={st} style={[styles.tipBtn, pTip === st && styles.gelirActive]} onPress={() => setPTip(st)}>
+                    <Text style={styles.tipText}>{st}</Text>
+                  </TouchableOpacity>
+                ))}
               </View>
+
               <TextInput style={styles.input} placeholder={text.pFiyat} placeholderTextColor="#64748b" keyboardType="numeric" value={pFiyat} onChangeText={setPFiyat} />
               <TextInput style={styles.input} placeholder={text.pKonum} placeholderTextColor="#64748b" value={pKonum} onChangeText={setPKonum} />
               <TextInput style={[styles.input, { height: 70 }]} placeholder={text.pAciklama} placeholderTextColor="#64748b" multiline value={pAciklama} onChangeText={setPAciklama} />
@@ -391,16 +469,44 @@ export default function App() {
               )}
             </View>
 
-            <Text style={styles.sectionTitle}>Portföyler ({portfoyler.length})</Text>
-            {portfoyler.length === 0 ? (
-              <View style={styles.emptyCard}><Text style={styles.emptyText}>Kayıtlı portföy bulunmuyor.</Text></View>
+            {/* FİLTRELEME & ARAMA ALANI */}
+            <View style={styles.filterCard}>
+              <TextInput 
+                style={styles.searchInput} 
+                placeholder="🔍 Portföy ara (Başlık, konum, açıklama)..." 
+                placeholderTextColor="#64748b"
+                value={pSearchQuery}
+                onChangeText={setPSearchQuery}
+              />
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chipRow}>
+                {['TÜMÜ', 'Konut', 'Arsa', 'İş Yeri', 'Zeytinlik/Tarla'].map(cat => (
+                  <TouchableOpacity key={cat} onPress={() => setPSelectedCategory(cat)} style={[styles.chip, pSelectedCategory === cat && styles.chipActive]}>
+                    <Text style={[styles.chipText, pSelectedCategory === cat && styles.chipTextActive]}>{cat}</Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chipRow}>
+                {['TÜMÜ', 'Satılık', 'Kiralık', 'Kat Karşılığı'].map(st => (
+                  <TouchableOpacity key={st} onPress={() => setPSelectedStatus(st)} style={[styles.subChip, pSelectedStatus === st && styles.subChipActive]}>
+                    <Text style={[styles.subChipText, pSelectedStatus === st && styles.subChipTextActive]}>{st}</Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            </View>
+
+            <Text style={styles.sectionTitle}>Portföyler ({filtrelenmisPortfoyler.length} / {portfoyler.length})</Text>
+            {filtrelenmisPortfoyler.length === 0 ? (
+              <View style={styles.emptyCard}><Text style={styles.emptyText}>Aradığınız kriterlere uygun portföy bulunamadı.</Text></View>
             ) : (
-              portfoyler.map(p => (
+              filtrelenmisPortfoyler.map(p => (
                 <View key={p.id} style={styles.listItem}>
                   <View style={{flex: 1}}>
                     <View style={styles.listHeader}>
                       <Text style={styles.listTitle}>{p.baslik}</Text>
-                      <Text style={styles.listBadge}>{p.tip}</Text>
+                      <View style={{flexDirection: 'row', gap: 4}}>
+                        <Text style={styles.listBadge}>{p.category || 'Konut'}</Text>
+                        <Text style={[styles.listBadge, {backgroundColor: '#701a2c'}]}>{p.tip}</Text>
+                      </View>
                     </View>
                     <Text style={styles.listSub}>📍 {p.konum} | 💰 {p.fiyat.toLocaleString()} TL</Text>
                     {p.aciklama ? <Text style={styles.listDesc}>{p.aciklama}</Text> : null}
@@ -425,10 +531,27 @@ export default function App() {
             <View style={styles.formCard}>
               <Text style={styles.cardTitle}>{duzenlenenTalepId ? 'Talep Düzenle' : text.talepEkle}</Text>
               <TextInput style={styles.input} placeholder={text.tMusteri} placeholderTextColor="#64748b" value={tMusteri} onChangeText={setTMusteri} />
+              
+              {/* Kategori Seçimi */}
+              <Text style={styles.labelSub}>Kategori:</Text>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chipRow}>
+                {['Konut', 'Arsa', 'İş Yeri', 'Zeytinlik/Tarla'].map(cat => (
+                  <TouchableOpacity key={cat} onPress={() => setTCategory(cat)} style={[styles.chip, tCategory === cat && styles.chipActive]}>
+                    <Text style={[styles.chipText, tCategory === cat && styles.chipTextActive]}>{cat}</Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+
+              {/* İşlem Tipi */}
+              <Text style={styles.labelSub}>İşlem Tipi:</Text>
               <View style={styles.tipRow}>
-                <TouchableOpacity style={[styles.tipBtn, tTip === 'Satılık' && styles.gelirActive]} onPress={() => setTTip('Satılık')}><Text style={styles.tipText}>Satılık</Text></TouchableOpacity>
-                <TouchableOpacity style={[styles.tipBtn, tTip === 'Kiralık' && styles.giderActive]} onPress={() => setTTip('Kiralık')}><Text style={styles.tipText}>Kiralık</Text></TouchableOpacity>
+                {['Satılık', 'Kiralık', 'Kat Karşılığı'].map(st => (
+                  <TouchableOpacity key={st} style={[styles.tipBtn, tTip === st && styles.gelirActive]} onPress={() => setTTip(st)}>
+                    <Text style={styles.tipText}>{st}</Text>
+                  </TouchableOpacity>
+                ))}
               </View>
+
               <TextInput style={styles.input} placeholder={text.tMaxFiyat} placeholderTextColor="#64748b" keyboardType="numeric" value={tMaxFiyat} onChangeText={setTMaxFiyat} />
               <TextInput style={styles.input} placeholder={text.tAranan} placeholderTextColor="#64748b" value={tAranan} onChangeText={setTAranan} />
               <TextInput style={styles.input} placeholder={text.tKonum} placeholderTextColor="#64748b" value={tKonum} onChangeText={setTKonum} />
@@ -443,16 +566,44 @@ export default function App() {
               )}
             </View>
 
-            <Text style={styles.sectionTitle}>Talepler ({talepler.length})</Text>
-            {talepler.length === 0 ? (
-              <View style={styles.emptyCard}><Text style={styles.emptyText}>Kayıtlı talep bulunmuyor.</Text></View>
+            {/* FİLTRELEME & ARAMA ALANI */}
+            <View style={styles.filterCard}>
+              <TextInput 
+                style={styles.searchInput} 
+                placeholder="🔍 Talep ara (Müşteri, aranan, bölge)..." 
+                placeholderTextColor="#64748b"
+                value={tSearchQuery}
+                onChangeText={setTSearchQuery}
+              />
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chipRow}>
+                {['TÜMÜ', 'Konut', 'Arsa', 'İş Yeri', 'Zeytinlik/Tarla'].map(cat => (
+                  <TouchableOpacity key={cat} onPress={() => setTSelectedCategory(cat)} style={[styles.chip, tSelectedCategory === cat && styles.chipActive]}>
+                    <Text style={[styles.chipText, tSelectedCategory === cat && styles.chipTextActive]}>{cat}</Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chipRow}>
+                {['TÜMÜ', 'Satılık', 'Kiralık', 'Kat Karşılığı'].map(st => (
+                  <TouchableOpacity key={st} onPress={() => setTSelectedStatus(st)} style={[styles.subChip, tSelectedStatus === st && styles.subChipActive]}>
+                    <Text style={[styles.subChipText, tSelectedStatus === st && styles.subChipTextActive]}>{st}</Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            </View>
+
+            <Text style={styles.sectionTitle}>Talepler ({filtrelenmisTalepler.length} / {talepler.length})</Text>
+            {filtrelenmisTalepler.length === 0 ? (
+              <View style={styles.emptyCard}><Text style={styles.emptyText}>Aradığınız kriterlere uygun talep bulunamadı.</Text></View>
             ) : (
-              talepler.map(talep => (
+              filtrelenmisTalepler.map(talep => (
                 <View key={talep.id} style={styles.listItem}>
                   <View style={{flex: 1}}>
                     <View style={styles.listHeader}>
                       <Text style={styles.listTitle}>{talep.musteri}</Text>
-                      <Text style={styles.listBadge}>{talep.tip}</Text>
+                      <View style={{flexDirection: 'row', gap: 4}}>
+                        <Text style={styles.listBadge}>{talep.category || 'Konut'}</Text>
+                        <Text style={[styles.listBadge, {backgroundColor: '#701a2c'}]}>{talep.tip}</Text>
+                      </View>
                     </View>
                     <Text style={styles.listSub}>🔍 {talep.aranan} | 📍 {talep.konum}</Text>
                     <Text style={styles.listDesc}>Max Bütçe: {talep.maxFiyat.toLocaleString()} TL</Text>
@@ -514,7 +665,7 @@ const styles = StyleSheet.create({
   titleBox: {
     flex: 1,
     alignItems: 'center',
-    backgroundColor: '#4a1525', // TOCO Kurumsal Vişne Çürüğü Tonu
+    backgroundColor: '#4a1525', 
     paddingVertical: 8,
     paddingHorizontal: 20,
     borderRadius: 10,
@@ -531,11 +682,14 @@ const styles = StyleSheet.create({
   tabText: { color: '#94a3b8', fontSize: 12, fontWeight: '600' },
   activeTabText: { color: '#38bdf8', fontWeight: 'bold' },
   content: { padding: 15, paddingBottom: 60 },
-  bakiyeCard: { backgroundColor: '#0284c7', padding: 20, borderRadius: 14, alignItems: 'center', marginBottom: 15, shadowColor: '#0284c7', shadowOpacity: 0.3, shadowRadius: 8, elevation: 5 },
+  bakiyeCard: { backgroundColor: '#0284c7', padding: 20, borderRadius: 14, alignItems: 'center', marginBottom: 15 },
   bakiyeLabel: { color: '#e0f2fe', fontSize: 13, fontWeight: '600' },
   bakiyeValue: { color: '#fff', fontSize: 26, fontWeight: 'bold', marginTop: 4 },
   formCard: { backgroundColor: '#111827', padding: 16, borderRadius: 14, marginBottom: 15, borderWidth: 1, borderColor: '#1f2937' },
+  filterCard: { backgroundColor: '#161e2e', padding: 12, borderRadius: 12, marginBottom: 12, borderWidth: 1, borderColor: '#22303c' },
+  searchInput: { backgroundColor: '#090d16', color: '#fff', padding: 10, borderRadius: 8, marginBottom: 10, borderWidth: 1, borderColor: '#1f2937', fontSize: 13 },
   cardTitle: { color: '#f8fafc', fontSize: 15, fontWeight: 'bold', marginBottom: 12 },
+  labelSub: { color: '#94a3b8', fontSize: 12, marginBottom: 6, fontWeight: '600' },
   grafikRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 10 },
   grafikBoxGelir: { flex: 1, backgroundColor: '#064e3b', padding: 10, borderRadius: 8, marginRight: 5, alignItems: 'center' },
   grafikBoxGider: { flex: 1, backgroundColor: '#7f1d1d', padding: 10, borderRadius: 8, marginLeft: 5, alignItems: 'center' },
@@ -544,11 +698,11 @@ const styles = StyleSheet.create({
   barContainer: { flexDirection: 'row', height: 8, borderRadius: 4, overflow: 'hidden', backgroundColor: '#334155' },
   barGelir: { backgroundColor: '#10b981', height: '100%' },
   barGider: { backgroundColor: '#ef4444', height: '100%' },
-  tipRow: { flexDirection: 'row', marginBottom: 12 },
-  tipBtn: { flex: 1, padding: 10, backgroundColor: '#1f2937', alignItems: 'center', borderRadius: 8, marginHorizontal: 3, borderWidth: 1, borderColor: '#374151' },
-  gelirActive: { backgroundColor: '#16a34a', borderColor: '#22c55e' },
-  giderActive: { backgroundColor: '#dc2626', borderColor: '#ef4444' },
-  tipText: { color: '#fff', fontWeight: 'bold', fontSize: 13 },
+  tipRow: { flexDirection: 'row', marginBottom: 12, gap: 4 },
+  tipBtn: { flex: 1, padding: 8, backgroundColor: '#1f2937', alignItems: 'center', borderRadius: 8, borderWidth: 1, borderColor: '#374151' },
+  gelirActive: { backgroundColor: '#4a1525', borderColor: '#701a2c' },
+  giderActive: { backgroundColor: '#4a1525', borderColor: '#701a2c' },
+  tipText: { color: '#fff', fontWeight: 'bold', fontSize: 12 },
   input: { backgroundColor: '#090d16', color: '#fff', padding: 12, borderRadius: 8, marginBottom: 10, borderWidth: 1, borderColor: '#1f2937', fontSize: 14 },
   saveBtn: { backgroundColor: '#0284c7', padding: 12, borderRadius: 8, alignItems: 'center' },
   saveBtnText: { color: '#fff', fontWeight: 'bold', fontSize: 14 },
@@ -575,5 +729,14 @@ const styles = StyleSheet.create({
   alertCard: { backgroundColor: '#065f46', padding: 14, borderRadius: 10, marginBottom: 8, borderWidth: 1, borderColor: '#047857' },
   alertText: { color: '#d1fae5', fontSize: 13, fontWeight: '600', lineHeight: 18 },
   footerContainer: { marginTop: 25, alignItems: 'center', paddingVertical: 10, borderTopWidth: 1, borderTopColor: '#1f2937' },
-  footerText: { color: '#64748b', fontSize: 12, fontWeight: '600', letterSpacing: 0.5 }
+  footerText: { color: '#64748b', fontSize: 12, fontWeight: '600', letterSpacing: 0.5 },
+  chipRow: { flexDirection: 'row', marginBottom: 8 },
+  chip: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 16, backgroundColor: '#1f2937', marginRight: 6, borderWidth: 1, borderColor: '#374151' },
+  chipActive: { backgroundColor: '#4a1525', borderColor: '#701a2c' },
+  chipText: { color: '#94a3b8', fontSize: 12, fontWeight: '600' },
+  chipTextActive: { color: '#fff' },
+  subChip: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8, backgroundColor: '#090d16', marginRight: 6, borderWidth: 1, borderColor: '#1f2937' },
+  subChipActive: { backgroundColor: '#38bdf8', borderColor: '#38bdf8' },
+  subChipText: { color: '#94a3b8', fontSize: 11 },
+  subChipTextActive: { color: '#090d16', fontWeight: 'bold' }
 });
