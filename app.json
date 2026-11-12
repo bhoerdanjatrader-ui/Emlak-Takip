@@ -11,9 +11,18 @@
       "android"
     ],
     "android": {
-      "package": "com.toco.patron",
-      "kotlinVersion": "2.0.0"
+      "package": "com.toco.patron"
     },
+    "plugins": [
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "kotlinVersion": "2.1.20"
+          }
+        }
+      ]
+    ],
     "extra": {
       "eas": {
         "projectId": "a8a2c977-356c-49f7-8d84-58c4290a3f13"
