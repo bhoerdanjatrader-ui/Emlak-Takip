@@ -11,7 +11,8 @@
       "android"
     ],
     "android": {
-      "package": "com.toco.patron"
+      "package": "com.toco.patron",
+      "kotlinVersion": "2.0.0"
     },
     "extra": {
       "eas": {
