@@ -183,6 +183,9 @@ export default function App() {
 
   const toplamVarlik = hesaplar.reduce((toplam, h) => toplam + h.bakiye, 0);
   const toplamKrediBorcu = krediler.reduce((toplam, k) => toplam + Number(k.tutar || 0), 0);
+  const netVarlik = toplamVarlik - toplamKrediBorcu;
+  const isNetPozitif = netVarlik >= 0;
+
   const hesaplarBaslangicToplami = hesaplar.reduce((t, h) => t + h.bakiye, 0);
   const islemGelirToplami = islemGecmisi.filter(i => i.tip === 'gelir').reduce((t, i) => t + i.tutar, 0);
   const toplamGelir = Math.max(0, hesaplarBaslangicToplami) + islemGelirToplami;
@@ -214,7 +217,6 @@ export default function App() {
     await AsyncStorage.setItem('@toco_app_theme', yeniTema);
   };
 
-  // PORTFÖY KAYIT & GÜNCELLEME (Kati Kalıcılık Garantili)
   const portfoyKaydet = async () => {
     if (!pBaslik || !pFiyat || !pKonum) return Alert.alert('Hata', 'Başlık, fiyat ve konum zorunludur.');
     const fiyatNum = Number(pFiyat);
@@ -242,7 +244,6 @@ export default function App() {
     setPBaslik(p.baslik); setPTip(p.tip); setPCategory(p.category || 'Konut'); setPFiyat(p.fiyat.toString()); setPKonum(p.konum); setPAciklama(p.aciklama);
   };
 
-  // TALEPLER
   const talepKaydet = async () => {
     if (!tMusteri || !tMaxFiyat || !tKonum) return Alert.alert('Hata', 'Müşteri, bütçe ve bölge zorunludur.');
     const busteriMax = Number(tMaxFiyat);
@@ -270,7 +271,6 @@ export default function App() {
     setTMusteri(t.musteri); setTTip(t.tip); setTCategory(t.category || 'Konut'); setTMaxFiyat(t.maxFiyat.toString()); setTAranan(t.aranan); setTKonum(t.konum);
   };
 
-  // HESAPLAR & KREDİLER & İŞLEMLER
   const hesapKaydet = async () => {
     if (!yeniHesapAd) return Alert.alert('Hata', 'Hesap adı giriniz.');
     const bakiyeNum = Number(yeniHesapBakiye) || 0;
@@ -459,10 +459,10 @@ export default function App() {
               </View>
 
               <Text style={dynStyles.labelSub}>İşlem Tipi:</Text>
-              <View style={styles.tipRow}>
+              <View style={styles.gridSelector}>
                 {['Satılık', 'Kiralık', 'Kat Karşılığı'].map(st => (
-                  <TouchableOpacity key={st} style={[dynStyles.tipBtn, pTip === st && dynStyles.gelirActive]} onPress={() => setPTip(st)}>
-                    <Text style={[dynStyles.tipText, pTip === st && dynStyles.tipTextActive]}>{st}</Text>
+                  <TouchableOpacity key={st} onPress={() => setPTip(st)} style={[dynStyles.gridBtn, pTip === st && dynStyles.gridBtnActive]}>
+                    <Text style={[dynStyles.gridBtnText, pTip === st && dynStyles.gridBtnTextActive]}>{st}</Text>
                   </TouchableOpacity>
                 ))}
               </View>
@@ -518,7 +518,7 @@ export default function App() {
                       <Text style={dynStyles.listTitle}>{p.baslik}</Text>
                       <View style={{flexDirection: 'row', gap: 4}}>
                         <Text style={styles.listBadge}>{p.category || 'Konut'}</Text>
-                        <Text style={[styles.listBadge, {backgroundColor: '#6A1B29'}]}>{p.tip}</Text>
+                        <Text style={styles.listBadgeTip}>{p.tip}</Text>
                       </View>
                     </View>
                     <Text style={dynStyles.listSub}>📍 {p.konum} | 💰 {Number(p.fiyat || 0).toLocaleString()} TL</Text>
@@ -554,10 +554,10 @@ export default function App() {
               </View>
 
               <Text style={dynStyles.labelSub}>İşlem Tipi:</Text>
-              <View style={styles.tipRow}>
+              <View style={styles.gridSelector}>
                 {['Satılık', 'Kiralık', 'Kat Karşılığı'].map(st => (
-                  <TouchableOpacity key={st} style={[styles.tipBtn, tTip === st && dynStyles.gelirActive]} onPress={() => setTTip(st)}>
-                    <Text style={[styles.tipText, tTip === st && dynStyles.tipTextActive]}>{st}</Text>
+                  <TouchableOpacity key={st} onPress={() => setTTip(st)} style={[dynStyles.gridBtn, tTip === st && dynStyles.gridBtnActive]}>
+                    <Text style={[dynStyles.gridBtnText, tTip === st && dynStyles.gridBtnTextActive]}>{st}</Text>
                   </TouchableOpacity>
                 ))}
               </View>
@@ -612,8 +612,8 @@ export default function App() {
                     <View style={styles.listHeader}>
                       <Text style={dynStyles.listTitle}>{talep.musteri}</Text>
                       <View style={{flexDirection: 'row', gap: 4}}>
-                        <Text style={styles.listBadge}>{talep.category || 'Konut'}</Text>
-                        <Text style={[styles.listBadge, {backgroundColor: '#6A1B29'}]}>{talep.tip}</Text>
+                        <Text style={dynStyles.listBadge}>{talep.category || 'Konut'}</Text>
+                        <Text style={dynStyles.listBadgeTip}>{talep.tip}</Text>
                       </View>
                     </View>
                     <Text style={dynStyles.listSub}>🔍 {talep.aranan} | 📍 {talep.konum}</Text>
@@ -648,9 +648,24 @@ export default function App() {
 
         {activeTab === 'kasa' && (
           <View>
-            <View style={styles.bakiyeCard}>
+            {/* Dinamik Arka Planlı (Yeşil/Kırmızı) Çizgi Grafik Özeti Kartı */}
+            <View style={[styles.bakiyeCard, isNetPozitif ? styles.bakiyeCardGreen : styles.bakiyeCardRed]}>
               <Text style={styles.bakiyeLabel}>Toplam Net Varlık</Text>
-              <Text style={styles.bakiyeValue}>{(toplamVarlik - toplamKrediBorcu).toLocaleString()} TL</Text>
+              <Text style={styles.bakiyeValue}>{netVarlik.toLocaleString()} TL</Text>
+              
+              {/* Modern Çizgi Grafik Temsili */}
+              <View style={styles.lineChartContainer}>
+                <View style={styles.lineChartTrack}>
+                  <View style={[styles.lineChartPoint, { left: '10%', bottom: '30%' }]} />
+                  <View style={[styles.lineChartPoint, { left: '35%', bottom: '50%' }]} />
+                  <View style={[styles.lineChartPoint, { left: '65%', bottom: '40%' }]} />
+                  <View style={[styles.lineChartPoint, { left: '90%', bottom: isNetPozitif ? '85%' : '15%' }]} />
+                </View>
+                <Text style={styles.chartTrendText}>
+                  {isNetPozitif ? '📈 Trend: Yükselişte / Artıda' : '📉 Trend: Ekside / Dikkat'}
+                </Text>
+              </View>
+
               <Text style={styles.bakiyeSubText}>Brüt: {toplamVarlik.toLocaleString()} TL | Kredi Borçları: -{toplamKrediBorcu.toLocaleString()} TL</Text>
             </View>
 
@@ -725,12 +740,12 @@ export default function App() {
 
             <View style={dynStyles.formCard}>
               <Text style={dynStyles.cardTitle}>Gelir / Gider Ekle</Text>
-              <View style={styles.tipRow}>
-                <TouchableOpacity style={[styles.tipBtn, islemTipi === 'gelir' && dynStyles.gelirActive]} onPress={() => setIslemTipi('gelir')}>
-                  <Text style={[styles.tipText, islemTipi === 'gelir' && dynStyles.tipTextActive]}>Gelir</Text>
+              <View style={styles.gridSelector}>
+                <TouchableOpacity style={[styles.gridBtn, islemTipi === 'gelir' && styles.gridBtnActive]} onPress={() => setIslemTipi('gelir')}>
+                  <Text style={[styles.gridBtnText, islemTipi === 'gelir' && styles.gridBtnTextActive]}>Gelir</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={[styles.tipBtn, islemTipi === 'gider' && dynStyles.gelirActive]} onPress={() => setIslemTipi('gider')}>
-                  <Text style={[styles.tipText, islemTipi === 'gider' && dynStyles.tipTextActive]}>Gider</Text>
+                <TouchableOpacity style={[styles.gridBtn, islemTipi === 'gider' && styles.gridBtnActive]} onPress={() => setIslemTipi('gider')}>
+                  <Text style={[styles.gridBtnText, islemTipi === 'gider' && styles.gridBtnTextActive]}>Gider</Text>
                 </TouchableOpacity>
               </View>
               <TextInput style={dynStyles.input} placeholder="Tutar (TL)" placeholderTextColor={isDark ? '#9ca3af' : '#9ca3af'} keyboardType="default" value={tutar} onChangeText={setTutar} />
@@ -771,12 +786,12 @@ export default function App() {
             <View style={dynStyles.formCard}>
               <Text style={dynStyles.cardTitle}>🎨 Görünüm & Tema</Text>
               <Text style={dynStyles.labelSub}>Uygulama Tema Modu:</Text>
-              <View style={styles.tipRow}>
-                <TouchableOpacity style={[styles.tipBtn, isDark && dynStyles.gelirActive]} onPress={() => temaDegistir('dark')}>
-                  <Text style={[styles.tipText, isDark && dynStyles.tipTextActive]}>Karanlık Mod 🌙</Text>
+              <View style={styles.gridSelector}>
+                <TouchableOpacity style={[styles.gridBtn, isDark && styles.gridBtnActive]} onPress={() => temaDegistir('dark')}>
+                  <Text style={[styles.gridBtnText, isDark && styles.gridBtnTextActive]}>Karanlık Mod 🌙</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={[styles.tipBtn, !isDark && dynStyles.gelirActive]} onPress={() => temaDegistir('light')}>
-                  <Text style={[styles.tipText, !isDark && dynStyles.tipTextActive]}>Aydınlık Mod ☀️</Text>
+                <TouchableOpacity style={[styles.gridBtn, !isDark && styles.gridBtnActive]} onPress={() => temaDegistir('light')}>
+                  <Text style={[styles.gridBtnText, !isDark && styles.gridBtnTextActive]}>Aydınlık Mod ☀️</Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -819,7 +834,6 @@ export default function App() {
   );
 }
 
-// Net, Modern ve Yüksek Kontrastlı Dinamik Renk Paleti (Sadece logo vişne rengi)
 const getDynamicStyles = (isDark) => StyleSheet.create({
   container: { flex: 1, backgroundColor: isDark ? '#121214' : '#f3f4f6' },
   lockContainer: { flex: 1, backgroundColor: isDark ? '#121214' : '#f3f4f6', justifyContent: 'center', alignItems: 'center', padding: 20 },
@@ -827,8 +841,6 @@ const getDynamicStyles = (isDark) => StyleSheet.create({
   lockSubText: { color: isDark ? '#e4e4e7' : '#374151', fontSize: 13, marginVertical: 15, fontWeight: '600' },
   biometricBtn: { backgroundColor: isDark ? '#27272a' : '#f9fafb', width: '100%', padding: 14, borderRadius: 10, alignItems: 'center', marginBottom: 15, borderWidth: 1, borderColor: isDark ? '#3f3f46' : '#d1d5db' },
   biometricText: { color: isDark ? '#ffffff' : '#111827', fontWeight: 'bold', fontSize: 14 },
-  line: { flex: 1, height: 1, backgroundColor: isDark ? '#27272a' : '#e5e7eb' },
-  orText: { color: isDark ? '#a1a1aa' : '#6b7280', fontSize: 11, marginHorizontal: 10, fontWeight: 'bold' },
   lockInput: { backgroundColor: isDark ? '#121214' : '#ffffff', color: isDark ? '#ffffff' : '#111827', width: '100%', padding: 12, borderRadius: 8, marginBottom: 12, borderWidth: 1, borderColor: isDark ? '#3f3f46' : '#d1d5db', textAlign: 'center', fontSize: 16 },
   header: { backgroundColor: isDark ? '#18181b' : '#ffffff', padding: 14, alignItems: 'center', borderBottomWidth: 1, borderBottomColor: isDark ? '#27272a' : '#e5e7eb' },
   tabContainer: { flexDirection: 'row', backgroundColor: isDark ? '#18181b' : '#ffffff', borderBottomWidth: 1, borderBottomColor: isDark ? '#27272a' : '#e5e7eb' },
@@ -842,14 +854,6 @@ const getDynamicStyles = (isDark) => StyleSheet.create({
   cardTitle: { color: isDark ? '#ffffff' : '#111827', fontSize: 15, fontWeight: 'bold', marginBottom: 12 },
   labelSub: { color: isDark ? '#f4f4f5' : '#1f2937', fontSize: 12, marginBottom: 6, fontWeight: '600' },
   filterLabelHeader: { color: isDark ? '#f4f4f5' : '#1f2937', fontSize: 11, marginBottom: 4, marginTop: 6, fontWeight: '600' },
-  gridBtn: { width: '48%', paddingVertical: 10, backgroundColor: isDark ? '#27272a' : '#f9fafb', alignItems: 'center', borderRadius: 8, borderWidth: 1, borderColor: isDark ? '#3f3f46' : '#d1d5db' },
-  gridBtnActive: { backgroundColor: '#6A1B29', borderColor: '#8E2437' },
-  gridBtnText: { color: isDark ? '#e4e4e7' : '#374151', fontSize: 12, fontWeight: '600' },
-  gridBtnTextActive: { color: '#ffffff', fontWeight: 'bold' },
-  tipBtn: { flex: 1, padding: 10, backgroundColor: isDark ? '#27272a' : '#f9fafb', alignItems: 'center', borderRadius: 8, borderWidth: 1, borderColor: isDark ? '#3f3f46' : '#d1d5db' },
-  gelirActive: { backgroundColor: '#6A1B29', borderColor: '#8E2437' },
-  tipText: { color: isDark ? '#e4e4e7' : '#374151', fontSize: 12, fontWeight: 'bold' },
-  tipTextActive: { color: '#ffffff' },
   input: { backgroundColor: isDark ? '#121214' : '#f9fafb', color: isDark ? '#ffffff' : '#111827', padding: 12, borderRadius: 8, marginBottom: 10, borderWidth: 1, borderColor: isDark ? '#3f3f46' : '#d1d5db', fontSize: 14 },
   sectionTitle: { color: isDark ? '#ffffff' : '#111827', fontSize: 15, fontWeight: 'bold', marginVertical: 10 },
   historyItem: { backgroundColor: isDark ? '#18181b' : '#ffffff', padding: 14, borderRadius: 10, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8, borderWidth: 1, borderColor: isDark ? '#27272a' : '#e5e7eb' },
@@ -858,7 +862,6 @@ const getDynamicStyles = (isDark) => StyleSheet.create({
   listItem: { backgroundColor: isDark ? '#18181b' : '#ffffff', padding: 14, borderRadius: 10, marginBottom: 8, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', borderWidth: 1, borderColor: isDark ? '#27272a' : '#e5e7eb' },
   creditItem: { backgroundColor: isDark ? '#18181b' : '#ffffff', padding: 14, borderRadius: 10, marginBottom: 8, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', borderWidth: 1, borderColor: '#7f1d1d' },
   listTitle: { color: isDark ? '#ffffff' : '#111827', fontSize: 14, fontWeight: 'bold' },
-  listBadge: { backgroundColor: isDark ? '#27272a' : '#e5e7eb', color: isDark ? '#ffffff' : '#111827', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 5, fontSize: 10, fontWeight: 'bold' },
   listSub: { color: isDark ? '#e4e4e7' : '#4b5563', fontSize: 12, marginBottom: 2, fontWeight: '500' },
   listDesc: { color: isDark ? '#d4d4d8' : '#6b7280', fontSize: 12, fontStyle: 'italic' },
   emptyCard: { backgroundColor: isDark ? '#18181b' : '#ffffff', padding: 20, borderRadius: 10, alignItems: 'center', borderWidth: 1, borderColor: isDark ? '#27272a' : '#e5e7eb' },
@@ -880,17 +883,26 @@ const styles = StyleSheet.create({
   headerTitle: { color: '#ffffff', fontSize: 20, fontWeight: '900', letterSpacing: 2 },
   tab: { flex: 1, paddingVertical: 12, alignItems: 'center' },
   content: { padding: 15, paddingBottom: 50 },
-  bakiyeCard: { backgroundColor: '#6A1B29', padding: 20, borderRadius: 14, alignItems: 'center', marginBottom: 15 },
+  bakiyeCard: { padding: 20, borderRadius: 14, alignItems: 'center', marginBottom: 15, borderWidth: 1 },
+  bakiyeCardGreen: { backgroundColor: '#064e3b', borderColor: '#059669' },
+  bakiyeCardRed: { backgroundColor: '#7f1d1d', borderColor: '#dc2626' },
   bakiyeLabel: { color: '#f3f4f6', fontSize: 13, fontWeight: '600' },
   bakiyeValue: { color: '#ffffff', fontSize: 26, fontWeight: 'bold', marginTop: 4 },
-  bakiyeSubText: { color: '#e5e7eb', fontSize: 11, marginTop: 6 },
+  bakiyeSubText: { color: '#e5e7eb', fontSize: 11, marginTop: 10 },
+  lineChartContainer: { width: '100%', height: 50, marginVertical: 8, position: 'relative', justifyContent: 'center' },
+  lineChartTrack: { width: '100%', height: 2, backgroundColor: 'rgba(255,255,255,0.3)', position: 'relative' },
+  lineChartPoint: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#ffffff', position: 'absolute' },
+  chartTrendText: { color: '#ffffff', fontSize: 11, fontWeight: 'bold', textAlign: 'center', marginTop: 4 },
   summaryCardRow: { flexDirection: 'row', justifyContent: 'space-between', gap: 10 },
   summaryCardGelir: { flex: 1, backgroundColor: '#064e3b', padding: 14, borderRadius: 10, alignItems: 'center', borderWidth: 1, borderColor: '#047857' },
   summaryCardGider: { flex: 1, backgroundColor: '#7f1d1d', padding: 14, borderRadius: 10, alignItems: 'center', borderWidth: 1, borderColor: '#991b1b' },
   summaryLabel: { color: '#e2e8f0', fontSize: 12, fontWeight: '600' },
   summaryVal: { color: '#ffffff', fontSize: 15, fontWeight: 'bold', marginTop: 4 },
   gridSelector: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginBottom: 12 },
-  tipRow: { flexDirection: 'row', marginBottom: 12, gap: 6 },
+  gridBtn: { width: '31%', paddingVertical: 10, backgroundColor: '#27272a', alignItems: 'center', borderRadius: 8, borderWidth: 1, borderColor: '#3f3f46' },
+  gridBtnActive: { backgroundColor: '#6A1B29', borderColor: '#8E2437' },
+  gridBtnText: { color: '#e4e4e7', fontSize: 11, fontWeight: '600' },
+  gridBtnTextActive: { color: '#ffffff', fontWeight: 'bold' },
   saveBtn: { backgroundColor: '#6A1B29', padding: 12, borderRadius: 8, alignItems: 'center' },
   saveBtnText: { color: '#ffffff', fontWeight: 'bold', fontSize: 14 },
   creditAmount: { color: '#f87171', fontSize: 13, fontWeight: 'bold', marginTop: 2 },
@@ -898,6 +910,8 @@ const styles = StyleSheet.create({
   erkenKapatBtn: { backgroundColor: '#047857', paddingHorizontal: 10, paddingVertical: 8, borderRadius: 8 },
   erkenKapatText: { color: '#ffffff', fontSize: 11, fontWeight: 'bold' },
   listHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 },
+  listBadge: { backgroundColor: '#27272a', color: '#ffffff', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 5, fontSize: 10, fontWeight: 'bold', overflow: 'hidden' },
+  listBadgeTip: { backgroundColor: '#6A1B29', color: '#ffffff', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 5, fontSize: 10, fontWeight: 'bold', overflow: 'hidden' },
   actionColumn: { justifyContent: 'center', alignItems: 'flex-end', marginLeft: 10 },
   actionRow: { flexDirection: 'row', gap: 6 },
   iconBtnEdit: { backgroundColor: '#27272a', paddingHorizontal: 8, paddingVertical: 6, borderRadius: 6, marginBottom: 4, alignItems: 'center', borderWidth: 1, borderColor: '#3f3f46' },
