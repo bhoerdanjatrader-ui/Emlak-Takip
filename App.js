@@ -16,7 +16,7 @@ export default function App() {
   const [lang, setLang] = useState('tr');
   const [activeTab, setActiveTab] = useState('kasa');
 
-  // Boş Başlangıç Verileri (Örnek veriler sıfırlandı)
+  // Kasa / Banka Hesapları
   const [hesaplar, setHesaplar] = useState([
     { id: '1', ad: 'Nakit Kasa', bakiye: 0 },
     { id: '2', ad: 'Ana Banka Hesabı', bakiye: 0 }
@@ -59,7 +59,7 @@ export default function App() {
       hesaplarim: 'Kasa ve Banka Hesapları',
       yeniHesap: 'Yeni Hesap Ekle',
       hesapAdi: 'Hesap Adı',
-      ilkBakiye: 'Başlangıç Bakiyesi (TL)',
+      ilkBakiye: 'Başlangıç Bakiyesi (TL) [Eksi olabilir]',
       ekleKaydet: 'Kaydet',
       guncelle: 'Güncelle',
       iptal: 'İptal',
@@ -122,8 +122,13 @@ export default function App() {
 
   const text = t[lang];
 
+  // Toplam varlık hesaplama
   const toplamVarlik = hesaplar.reduce((toplam, h) => toplam + h.bakiye, 0);
-  const toplamGelir = islemGecmisi.filter(i => i.tip === 'gelir').reduce((t, i) => t + i.tutar, 0);
+
+  // Finansal özet: Hesapların başlangıç bakiyeleri ve yapılan gelirler toplam gelire yansır
+  const hesaplarBaslangicToplami = hesaplar.reduce((t, h) => t + h.bakiye, 0);
+  const islemGelirToplami = islemGecmisi.filter(i => i.tip === 'gelir').reduce((t, i) => t + i.tutar, 0);
+  const toplamGelir = Math.max(0, hesaplarBaslangicToplami) + islemGelirToplami;
   const toplamGider = islemGecmisi.filter(i => i.tip === 'gider').reduce((t, i) => t + i.tutar, 0);
 
   useEffect(() => {
@@ -147,7 +152,7 @@ export default function App() {
 
   const hesapKaydet = () => {
     if (!yeniHesapAd) return Alert.alert('Hata', 'Hesap adı giriniz.');
-    const bakiyeNum = Number(yeniHesapBakiye) || 0;
+    const bakiyeNum = Number(yeniHesapBakiye) || 0; // Negatif (eksi) değerlere izin verir
 
     if (duzenlenenHesapId) {
       setHesaplar(hesaplar.map(h => h.id === duzenlenenHesapId ? { ...h, ad: yeniHesapAd, bakiye: bakiyeNum } : h));
@@ -246,7 +251,7 @@ export default function App() {
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor="#0b0f19" />
       
-      {/* Üst Başlık - PATRON Kutu İçerisinde Ortada */}
+      {/* Üst Başlık - PATRON: Ortada, Kalın ve Vişne Çürüğü Kutu İçerisinde */}
       <View style={styles.header}>
         <View style={styles.titleBox}>
           <Text style={styles.headerTitle}>PATRON</Text>
@@ -307,7 +312,7 @@ export default function App() {
               <View key={h.id} style={styles.listItem}>
                 <View>
                   <Text style={styles.listTitle}>{h.ad}</Text>
-                  <Text style={styles.listSub}>{h.bakiye.toLocaleString()} TL</Text>
+                  <Text style={[styles.listSub, h.bakiye < 0 && { color: '#f87171' }]}>{h.bakiye.toLocaleString()} TL</Text>
                 </View>
                 <View style={styles.actionRow}>
                   <TouchableOpacity style={styles.iconBtnEdit} onPress={() => hesapDuzenleBaslat(h)}><Text style={styles.iconText}>✏️</Text></TouchableOpacity>
@@ -509,15 +514,15 @@ const styles = StyleSheet.create({
   titleBox: {
     flex: 1,
     alignItems: 'center',
-    backgroundColor: '#1f2937',
-    paddingVertical: 6,
+    backgroundColor: '#4a1525', // TOCO Kurumsal Vişne Çürüğü Tonu
+    paddingVertical: 8,
     paddingHorizontal: 20,
-    borderRadius: 8,
+    borderRadius: 10,
     marginRight: 10,
-    borderWidth: 1,
-    borderColor: '#374151'
+    borderWidth: 1.5,
+    borderColor: '#701a2c'
   },
-  headerTitle: { color: '#38bdf8', fontSize: 18, fontWeight: '900', letterSpacing: 1.5 },
+  headerTitle: { color: '#f3f4f6', fontSize: 19, fontWeight: '900', letterSpacing: 2 },
   langBtn: { backgroundColor: '#1f2937', paddingHorizontal: 10, paddingVertical: 6, borderRadius: 8, borderWidth: 1, borderColor: '#374151' },
   langText: { color: '#fff', fontSize: 13, fontWeight: '600' },
   tabContainer: { flexDirection: 'row', backgroundColor: '#111827', borderBottomWidth: 1, borderBottomColor: '#1f2937' },
