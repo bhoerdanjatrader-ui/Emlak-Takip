@@ -16,30 +16,22 @@ export default function App() {
   const [lang, setLang] = useState('tr');
   const [activeTab, setActiveTab] = useState('kasa');
 
-  // Kasa / Banka Hesapları State'leri
+  // Boş Başlangıç Verileri (Örnek veriler sıfırlandı)
   const [hesaplar, setHesaplar] = useState([
-    { id: '1', ad: 'Nakit Kasa', bakiye: 15000 },
-    { id: '2', ad: 'Ziraat Bankası', bakiye: 45000 },
-    { id: '3', ad: 'Garanti BBVA', bakiye: 12500 }
+    { id: '1', ad: 'Nakit Kasa', bakiye: 0 },
+    { id: '2', ad: 'Ana Banka Hesabı', bakiye: 0 }
   ]);
   const [yeniHesapAd, setYeniHesapAd] = useState('');
   const [yeniHesapBakiye, setYeniHesapBakiye] = useState('');
   const [duzenlenenHesapId, setDuzenlenenHesapId] = useState(null);
 
-  // Gelir / Gider İşlem State'leri
   const [islemTipi, setIslemTipi] = useState('gelir');
   const [tutar, setTutar] = useState('');
   const [aciklama, setAciklama] = useState('');
   const [seciliHesap, setSeciliHesap] = useState('Nakit Kasa');
-  const [islemGecmisi, setIslemGecmisi] = useState([
-    { id: '1', tip: 'gelir', tutar: 15000, aciklama: 'Satış Komisyonu - Villa', hesap: 'Ziraat Bankası', tarih: '10.11.2026' },
-    { id: '2', tip: 'gider', tutar: 2500, aciklama: 'Ofis Kirası', hesap: 'Nakit Kasa', tarih: '01.11.2026' },
-  ]);
+  const [islemGecmisi, setIslemGecmisi] = useState([]);
 
-  // Portföy State'leri
-  const [portfoyler, setPortfoyler] = useState([
-    { id: '1', baslik: 'Ören 3+1 Daire', tip: 'Satılık', fiyat: 3200000, konum: 'Burhaniye/Ören', aciklama: 'Denize sıfır, kombili.' }
-  ]);
+  const [portfoyler, setPortfoyler] = useState([]);
   const [pBaslik, setPBaslik] = useState('');
   const [pTip, setPTip] = useState('Satılık');
   const [pFiyat, setPFiyat] = useState('');
@@ -47,10 +39,7 @@ export default function App() {
   const [pAciklama, setPAciklama] = useState('');
   const [duzenlenenPortfoyId, setDuzenlenenPortfoyId] = useState(null);
 
-  // Talep State'leri
-  const [talepler, setTalepler] = useState([
-    { id: '1', musteri: 'Ahmet Bey', tip: 'Satılık', maxFiyat: 3500000, aranan: '3+1 Daire', konum: 'Ören' }
-  ]);
+  const [talepler, setTalepler] = useState([]);
   const [tMusteri, setTMusteri] = useState('');
   const [tTip, setTTip] = useState('Satılık');
   const [tMaxFiyat, setTMaxFiyat] = useState('');
@@ -58,78 +47,76 @@ export default function App() {
   const [tKonum, setTKonum] = useState('');
   const [duzenlenenTalepId, setDuzenlenenTalepId] = useState(null);
 
-  // Bildirimler
   const [bildirimler, setBildirimler] = useState([]);
 
-  // Dil Sözlüğü
   const t = {
     tr: {
-      title: 'Patron | Esnaf & Emlak Kasa',
       kasa: 'Kasa & Banka',
       portfoy: 'Portföy',
       talepler: 'Talepler',
       eslesme: 'Eşleşmeler',
       toplamVarlik: 'Toplam Varlıklar',
       hesaplarim: 'Kasa ve Banka Hesapları',
-      yeniHesap: 'Yeni Hesap Ekle (Banka / Kasa)',
-      hesapAdi: 'Hesap Adı (Örn: İş Bankası)',
+      yeniHesap: 'Yeni Hesap Ekle',
+      hesapAdi: 'Hesap Adı',
       ilkBakiye: 'Başlangıç Bakiyesi (TL)',
-      ekleKaydet: 'Ekle / Kaydet',
+      ekleKaydet: 'Kaydet',
       guncelle: 'Güncelle',
       iptal: 'İptal',
-      yeniIslem: 'Gelir / Gider İşlemi',
+      yeniIslem: 'Gelir / Gider Ekle',
       tutar: 'Tutar (TL)',
       islemAciklama: 'Açıklama',
       gelir: 'Gelir',
       gider: 'Gider',
       islemGecmisi: 'Finansal Hareketler',
-      grafikBaslik: 'Finansal Dağılım Özeti',
-      portfoyEkle: 'Portföy İşlemleri',
+      grafikBaslik: 'Finansal Özet',
+      portfoyEkle: 'Portföy Ekle',
       pBaslik: 'Portföy Başlığı',
       pFiyat: 'Fiyat (TL)',
       pKonum: 'Konum',
-      pAciklama: 'Detaylı Açıklama',
-      talepEkle: 'Müşteri Talebi İşlemleri',
-      tMusteri: 'Müşteri Ad Soyad',
+      pAciklama: 'Açıklama',
+      talepEkle: 'Talep Ekle',
+      tMusteri: 'Müşteri Adı',
       tMaxFiyat: 'Max Bütçe (TL)',
       tAranan: 'Aranan Gayrimenkul',
-      tKonum: 'İstenilen Bölge',
+      tKonum: 'Bölge',
       eslesmeBaslik: 'Nokta Atışı Eşleşmeler',
-      bildirimYok: 'Aktif eşleşme bulunmuyor.'
+      bildirimYok: 'Aktif eşleşme bulunmuyor.',
+      footerText: 'TOCO Ticaret Ofisi tarafından geliştirilmiştir'
     },
     en: {
-      title: 'Patron | Broker & Cashier',
       kasa: 'Cash & Banks',
       portfoy: 'Portfolio',
       talepler: 'Requests',
       eslesme: 'Matches',
       toplamVarlik: 'Total Assets',
       hesaplarim: 'Accounts & Banks',
-      yeniHesap: 'Add Account / Bank',
+      yeniHesap: 'Add Account',
       hesapAdi: 'Account Name',
       ilkBakiye: 'Initial Balance (TL)',
-      ekleKaydet: 'Add / Save',
+      ekleKaydet: 'Save',
       guncelle: 'Update',
       iptal: 'Cancel',
-      yeniIslem: 'Income / Expense',
+      yeniIslem: 'Add Income / Expense',
       tutar: 'Amount (TL)',
       islemAciklama: 'Description',
       gelir: 'Income',
       gider: 'Expense',
       islemGecmisi: 'Transactions',
       grafikBaslik: 'Financial Summary',
-      portfoyEkle: 'Portfolio Management',
+      portfoyEkle: 'Add Portfolio',
       pBaslik: 'Title',
       pFiyat: 'Price (TL)',
       pKonum: 'Location',
       pAciklama: 'Description',
-      talepEkle: 'Client Request Management',
+      talepEkle: 'Add Request',
       tMusteri: 'Client Name',
       tMaxFiyat: 'Max Budget (TL)',
       tAranan: 'Desired Property',
-      tKonum: 'Target Location',
+      tKonum: 'Location',
       eslesmeBaslik: 'Smart Matches',
-      bildirimYok: 'No matches found.'
+      bildirimYok: 'No matches found.',
+      footerText: 'Developed by TOCO Ticaret Ofisi'
     }
   };
 
@@ -257,11 +244,13 @@ export default function App() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#1e293b" />
+      <StatusBar barStyle="light-content" backgroundColor="#0b0f19" />
       
-      {/* Üst Başlık & Dil */}
+      {/* Üst Başlık - PATRON Kutu İçerisinde Ortada */}
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>{text.title}</Text>
+        <View style={styles.titleBox}>
+          <Text style={styles.headerTitle}>PATRON</Text>
+        </View>
         <TouchableOpacity style={styles.langBtn} onPress={() => setLang(lang === 'tr' ? 'en' : 'tr')}>
           <Text style={styles.langText}>{lang === 'tr' ? 'EN 🇬🇧' : 'TR 🇹🇷'}</Text>
         </TouchableOpacity>
@@ -329,8 +318,8 @@ export default function App() {
 
             <View style={styles.formCard}>
               <Text style={styles.cardTitle}>{duzenlenenHesapId ? 'Hesap Düzenle' : text.yeniHesap}</Text>
-              <TextInput style={styles.input} placeholder={text.hesapAdi} placeholderTextColor="#94a3b8" value={yeniHesapAd} onChangeText={setYeniHesapAd} />
-              <TextInput style={styles.input} placeholder={text.ilkBakiye} placeholderTextColor="#94a3b8" keyboardType="numeric" value={yeniHesapBakiye} onChangeText={setYeniHesapBakiye} />
+              <TextInput style={styles.input} placeholder={text.hesapAdi} placeholderTextColor="#64748b" value={yeniHesapAd} onChangeText={setYeniHesapAd} />
+              <TextInput style={styles.input} placeholder={text.ilkBakiye} placeholderTextColor="#64748b" keyboardType="numeric" value={yeniHesapBakiye} onChangeText={setYeniHesapBakiye} />
               <TouchableOpacity style={styles.saveBtn} onPress={hesapKaydet}>
                 <Text style={styles.saveBtnText}>{duzenlenenHesapId ? text.guncelle : text.ekleKaydet}</Text>
               </TouchableOpacity>
@@ -342,30 +331,34 @@ export default function App() {
                 <TouchableOpacity style={[styles.tipBtn, islemTipi === 'gelir' && styles.gelirActive]} onPress={() => setIslemTipi('gelir')}><Text style={styles.tipText}>{text.gelir}</Text></TouchableOpacity>
                 <TouchableOpacity style={[styles.tipBtn, islemTipi === 'gider' && styles.giderActive]} onPress={() => setIslemTipi('gider')}><Text style={styles.tipText}>{text.gider}</Text></TouchableOpacity>
               </View>
-              <TextInput style={styles.input} placeholder={text.tutar} placeholderTextColor="#94a3b8" keyboardType="numeric" value={tutar} onChangeText={setTutar} />
-              <TextInput style={styles.input} placeholder={text.islemAciklama} placeholderTextColor="#94a3b8" value={aciklama} onChangeText={setAciklama} />
+              <TextInput style={styles.input} placeholder={text.tutar} placeholderTextColor="#64748b" keyboardType="numeric" value={tutar} onChangeText={setTutar} />
+              <TextInput style={styles.input} placeholder={text.islemAciklama} placeholderTextColor="#64748b" value={aciklama} onChangeText={setAciklama} />
               <TouchableOpacity style={styles.saveBtn} onPress={islemKaydet}>
                 <Text style={styles.saveBtnText}>{text.ekleKaydet}</Text>
               </TouchableOpacity>
             </View>
 
             <Text style={styles.sectionTitle}>{text.islemGecmisi}</Text>
-            {islemGecmisi.map(item => (
-              <View key={item.id} style={styles.historyItem}>
-                <View>
-                  <Text style={styles.historyDesc}>{item.aciklama}</Text>
-                  <Text style={styles.historyDate}>{item.hesap} • {item.tarih}</Text>
+            {islemGecmisi.length === 0 ? (
+              <View style={styles.emptyCard}><Text style={styles.emptyText}>Henüz finansal hareket yok.</Text></View>
+            ) : (
+              islemGecmisi.map(item => (
+                <View key={item.id} style={styles.historyItem}>
+                  <View>
+                    <Text style={styles.historyDesc}>{item.aciklama}</Text>
+                    <Text style={styles.historyDate}>{item.hesap} • {item.tarih}</Text>
+                  </View>
+                  <View style={{alignItems: 'flex-end'}}>
+                    <Text style={[styles.historyAmount, item.tip === 'gelir' ? styles.textGelir : styles.textGider]}>
+                      {item.tip === 'gelir' ? '+' : '-'}{item.tutar.toLocaleString()} TL
+                    </Text>
+                    <TouchableOpacity onPress={() => islemSil(item.id, item.tip, item.tutar, item.hesap)}>
+                      <Text style={{color: '#f87171', fontSize: 12, marginTop: 4}}>🗑️</Text>
+                    </TouchableOpacity>
+                  </View>
                 </View>
-                <View style={{alignItems: 'flex-end'}}>
-                  <Text style={[styles.historyAmount, item.tip === 'gelir' ? styles.textGelir : styles.textGider]}>
-                    {item.tip === 'gelir' ? '+' : '-'}{item.tutar.toLocaleString()} TL
-                  </Text>
-                  <TouchableOpacity onPress={() => islemSil(item.id, item.tip, item.tutar, item.hesap)}>
-                    <Text style={{color: '#f87171', fontSize: 12, marginTop: 4}}>🗑️</Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
-            ))}
+              ))
+            )}
           </View>
         )}
 
@@ -374,46 +367,50 @@ export default function App() {
           <View>
             <View style={styles.formCard}>
               <Text style={styles.cardTitle}>{duzenlenenPortfoyId ? 'Portföy Düzenle' : text.portfoyEkle}</Text>
-              <TextInput style={styles.input} placeholder={text.pBaslik} placeholderTextColor="#94a3b8" value={pBaslik} onChangeText={setPBaslik} />
+              <TextInput style={styles.input} placeholder={text.pBaslik} placeholderTextColor="#64748b" value={pBaslik} onChangeText={setPBaslik} />
               <View style={styles.tipRow}>
                 <TouchableOpacity style={[styles.tipBtn, pTip === 'Satılık' && styles.gelirActive]} onPress={() => setPTip('Satılık')}><Text style={styles.tipText}>Satılık</Text></TouchableOpacity>
                 <TouchableOpacity style={[styles.tipBtn, pTip === 'Kiralık' && styles.giderActive]} onPress={() => setPTip('Kiralık')}><Text style={styles.tipText}>Kiralık</Text></TouchableOpacity>
               </View>
-              <TextInput style={styles.input} placeholder={text.pFiyat} placeholderTextColor="#94a3b8" keyboardType="numeric" value={pFiyat} onChangeText={setPFiyat} />
-              <TextInput style={styles.input} placeholder={text.pKonum} placeholderTextColor="#94a3b8" value={pKonum} onChangeText={setPKonum} />
-              <TextInput style={[styles.input, { height: 70 }]} placeholder={text.pAciklama} placeholderTextColor="#94a3b8" multiline value={pAciklama} onChangeText={setPAciklama} />
+              <TextInput style={styles.input} placeholder={text.pFiyat} placeholderTextColor="#64748b" keyboardType="numeric" value={pFiyat} onChangeText={setPFiyat} />
+              <TextInput style={styles.input} placeholder={text.pKonum} placeholderTextColor="#64748b" value={pKonum} onChangeText={setPKonum} />
+              <TextInput style={[styles.input, { height: 70 }]} placeholder={text.pAciklama} placeholderTextColor="#64748b" multiline value={pAciklama} onChangeText={setPAciklama} />
               
               <TouchableOpacity style={styles.saveBtn} onPress={portfoyKaydet}>
                 <Text style={styles.saveBtnText}>{duzenlenenPortfoyId ? text.guncelle : text.ekleKaydet}</Text>
               </TouchableOpacity>
               {duzenlenenPortfoyId && (
-                <TouchableOpacity style={[styles.saveBtn, {backgroundColor: '#64748b', marginTop: 8}]} onPress={() => { setDuzenlenenPortfoyId(null); setPBaslik(''); setPFiyat(''); setPKonum(''); setPAciklama(''); }}>
+                <TouchableOpacity style={[styles.saveBtn, {backgroundColor: '#475569', marginTop: 8}]} onPress={() => { setDuzenlenenPortfoyId(null); setPBaslik(''); setPFiyat(''); setPKonum(''); setPAciklama(''); }}>
                   <Text style={styles.saveBtnText}>{text.iptal}</Text>
                 </TouchableOpacity>
               )}
             </View>
 
             <Text style={styles.sectionTitle}>Portföyler ({portfoyler.length})</Text>
-            {portfoyler.map(p => (
-              <View key={p.id} style={styles.listItem}>
-                <View style={{flex: 1}}>
-                  <View style={styles.listHeader}>
-                    <Text style={styles.listTitle}>{p.baslik}</Text>
-                    <Text style={styles.listBadge}>{p.tip}</Text>
+            {portfoyler.length === 0 ? (
+              <View style={styles.emptyCard}><Text style={styles.emptyText}>Kayıtlı portföy bulunmuyor.</Text></View>
+            ) : (
+              portfoyler.map(p => (
+                <View key={p.id} style={styles.listItem}>
+                  <View style={{flex: 1}}>
+                    <View style={styles.listHeader}>
+                      <Text style={styles.listTitle}>{p.baslik}</Text>
+                      <Text style={styles.listBadge}>{p.tip}</Text>
+                    </View>
+                    <Text style={styles.listSub}>📍 {p.konum} | 💰 {p.fiyat.toLocaleString()} TL</Text>
+                    {p.aciklama ? <Text style={styles.listDesc}>{p.aciklama}</Text> : null}
                   </View>
-                  <Text style={styles.listSub}>📍 {p.konum} | 💰 {p.fiyat.toLocaleString()} TL</Text>
-                  {p.aciklama ? <Text style={styles.listDesc}>{p.aciklama}</Text> : null}
+                  <View style={styles.actionColumn}>
+                    <TouchableOpacity style={styles.iconBtnEdit} onPress={() => portfoyDuzenleBaslat(p)}>
+                      <Text style={styles.iconText}>✏️</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity style={styles.iconBtnDel} onPress={() => portfoySil(p.id)}>
+                      <Text style={styles.iconText}>🗑️</Text>
+                    </TouchableOpacity>
+                  </View>
                 </View>
-                <View style={styles.actionColumn}>
-                  <TouchableOpacity style={styles.iconBtnEdit} onPress={() => portfoyDuzenleBaslat(p)}>
-                    <Text style={styles.iconText}>✏️</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity style={styles.iconBtnDel} onPress={() => portfoySil(p.id)}>
-                    <Text style={styles.iconText}>🗑️</Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
-            ))}
+              ))
+            )}
           </View>
         )}
 
@@ -422,42 +419,46 @@ export default function App() {
           <View>
             <View style={styles.formCard}>
               <Text style={styles.cardTitle}>{duzenlenenTalepId ? 'Talep Düzenle' : text.talepEkle}</Text>
-              <TextInput style={styles.input} placeholder={text.tMusteri} placeholderTextColor="#94a3b8" value={tMusteri} onChangeText={setTMusteri} />
+              <TextInput style={styles.input} placeholder={text.tMusteri} placeholderTextColor="#64748b" value={tMusteri} onChangeText={setTMusteri} />
               <View style={styles.tipRow}>
                 <TouchableOpacity style={[styles.tipBtn, tTip === 'Satılık' && styles.gelirActive]} onPress={() => setTTip('Satılık')}><Text style={styles.tipText}>Satılık</Text></TouchableOpacity>
                 <TouchableOpacity style={[styles.tipBtn, tTip === 'Kiralık' && styles.giderActive]} onPress={() => setTTip('Kiralık')}><Text style={styles.tipText}>Kiralık</Text></TouchableOpacity>
               </View>
-              <TextInput style={styles.input} placeholder={text.tMaxFiyat} placeholderTextColor="#94a3b8" keyboardType="numeric" value={tMaxFiyat} onChangeText={setTMaxFiyat} />
-              <TextInput style={styles.input} placeholder={text.tAranan} placeholderTextColor="#94a3b8" value={tAranan} onChangeText={setTAranan} />
-              <TextInput style={styles.input} placeholder={text.tKonum} placeholderTextColor="#94a3b8" value={tKonum} onChangeText={setTKonum} />
+              <TextInput style={styles.input} placeholder={text.tMaxFiyat} placeholderTextColor="#64748b" keyboardType="numeric" value={tMaxFiyat} onChangeText={setTMaxFiyat} />
+              <TextInput style={styles.input} placeholder={text.tAranan} placeholderTextColor="#64748b" value={tAranan} onChangeText={setTAranan} />
+              <TextInput style={styles.input} placeholder={text.tKonum} placeholderTextColor="#64748b" value={tKonum} onChangeText={setTKonum} />
 
               <TouchableOpacity style={styles.saveBtn} onPress={talepKaydet}>
                 <Text style={styles.saveBtnText}>{duzenlenenTalepId ? text.guncelle : text.ekleKaydet}</Text>
               </TouchableOpacity>
               {duzenlenenTalepId && (
-                <TouchableOpacity style={[styles.saveBtn, {backgroundColor: '#64748b', marginTop: 8}]} onPress={() => { setDuzenlenenTalepId(null); setTMusteri(''); setTMaxFiyat(''); setTAranan(''); setTKonum(''); }}>
+                <TouchableOpacity style={[styles.saveBtn, {backgroundColor: '#475569', marginTop: 8}]} onPress={() => { setDuzenlenenTalepId(null); setTMusteri(''); setTMaxFiyat(''); setTAranan(''); setTKonum(''); }}>
                   <Text style={styles.saveBtnText}>{text.iptal}</Text>
                 </TouchableOpacity>
               )}
             </View>
 
             <Text style={styles.sectionTitle}>Talepler ({talepler.length})</Text>
-            {talepler.map(talep => (
-              <View key={talep.id} style={styles.listItem}>
-                <View style={{flex: 1}}>
-                  <View style={styles.listHeader}>
-                    <Text style={styles.listTitle}>{talep.musteri}</Text>
-                    <Text style={styles.listBadge}>{talep.tip}</Text>
+            {talepler.length === 0 ? (
+              <View style={styles.emptyCard}><Text style={styles.emptyText}>Kayıtlı talep bulunmuyor.</Text></View>
+            ) : (
+              talepler.map(talep => (
+                <View key={talep.id} style={styles.listItem}>
+                  <View style={{flex: 1}}>
+                    <View style={styles.listHeader}>
+                      <Text style={styles.listTitle}>{talep.musteri}</Text>
+                      <Text style={styles.listBadge}>{talep.tip}</Text>
+                    </View>
+                    <Text style={styles.listSub}>🔍 {talep.aranan} | 📍 {talep.konum}</Text>
+                    <Text style={styles.listDesc}>Max Bütçe: {talep.maxFiyat.toLocaleString()} TL</Text>
                   </View>
-                  <Text style={styles.listSub}>🔍 {talep.aranan} | 📍 {talep.konum}</Text>
-                  <Text style={styles.listDesc}>Max Bütçe: {talep.maxFiyat.toLocaleString()} TL</Text>
+                  <View style={styles.actionColumn}>
+                    <TouchableOpacity style={styles.iconBtnEdit} onPress={() => talepDuzenleBaslat(talep)}><Text style={styles.iconText}>✏️</Text></TouchableOpacity>
+                    <TouchableOpacity style={styles.iconBtnDel} onPress={() => talepSil(talep.id)}><Text style={styles.iconText}>🗑️</Text></TouchableOpacity>
+                  </View>
                 </View>
-                <View style={styles.actionColumn}>
-                  <TouchableOpacity style={styles.iconBtnEdit} onPress={() => talepDuzenleBaslat(talep)}><Text style={styles.iconText}>✏️</Text></TouchableOpacity>
-                  <TouchableOpacity style={styles.iconBtnDel} onPress={() => talepSil(talep.id)}><Text style={styles.iconText}>🗑️</Text></TouchableOpacity>
-                </View>
-              </View>
-            ))}
+              ))
+            )}
           </View>
         )}
 
@@ -479,6 +480,11 @@ export default function App() {
           </View>
         )}
 
+        {/* Kurum / Yazılım İmzası Alt Bilgi */}
+        <View style={styles.footerContainer}>
+          <Text style={styles.footerText}>{text.footerText}</Text>
+        </View>
+
       </ScrollView>
     </SafeAreaView>
   );
@@ -487,24 +493,44 @@ export default function App() {
 const styles = StyleSheet.create({
   container: { 
     flex: 1, 
-    backgroundColor: '#0f172a',
+    backgroundColor: '#090d16',
     paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0 
   },
-  header: { backgroundColor: '#1e293b', paddingHorizontal: 15, paddingVertical: 14, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', borderBottomWidth: 1, borderBottomColor: '#334155' },
-  headerTitle: { color: '#f8fafc', fontSize: 16, fontWeight: 'bold' },
-  langBtn: { backgroundColor: '#334155', paddingHorizontal: 10, paddingVertical: 5, borderRadius: 8 },
+  header: { 
+    backgroundColor: '#111827', 
+    paddingHorizontal: 15, 
+    paddingVertical: 14, 
+    flexDirection: 'row', 
+    justifyContent: 'space-between', 
+    alignItems: 'center', 
+    borderBottomWidth: 1, 
+    borderBottomColor: '#1f2937' 
+  },
+  titleBox: {
+    flex: 1,
+    alignItems: 'center',
+    backgroundColor: '#1f2937',
+    paddingVertical: 6,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+    marginRight: 10,
+    borderWidth: 1,
+    borderColor: '#374151'
+  },
+  headerTitle: { color: '#38bdf8', fontSize: 18, fontWeight: '900', letterSpacing: 1.5 },
+  langBtn: { backgroundColor: '#1f2937', paddingHorizontal: 10, paddingVertical: 6, borderRadius: 8, borderWidth: 1, borderColor: '#374151' },
   langText: { color: '#fff', fontSize: 13, fontWeight: '600' },
-  tabContainer: { flexDirection: 'row', backgroundColor: '#1e293b', borderBottomWidth: 1, borderBottomColor: '#334155' },
+  tabContainer: { flexDirection: 'row', backgroundColor: '#111827', borderBottomWidth: 1, borderBottomColor: '#1f2937' },
   tab: { flex: 1, paddingVertical: 12, alignItems: 'center' },
-  activeTab: { borderBottomWidth: 3, borderBottomColor: '#38bdf8' },
+  activeTab: { borderBottomWidth: 3, borderBottomColor: '#38bdf8', backgroundColor: '#1f2937' },
   tabText: { color: '#94a3b8', fontSize: 12, fontWeight: '600' },
-  activeTabText: { color: '#38bdf8' },
-  content: { padding: 15, paddingBottom: 80 },
-  bakiyeCard: { backgroundColor: '#0284c7', padding: 18, borderRadius: 12, alignItems: 'center', marginBottom: 15 },
+  activeTabText: { color: '#38bdf8', fontWeight: 'bold' },
+  content: { padding: 15, paddingBottom: 60 },
+  bakiyeCard: { backgroundColor: '#0284c7', padding: 20, borderRadius: 14, alignItems: 'center', marginBottom: 15, shadowColor: '#0284c7', shadowOpacity: 0.3, shadowRadius: 8, elevation: 5 },
   bakiyeLabel: { color: '#e0f2fe', fontSize: 13, fontWeight: '600' },
-  bakiyeValue: { color: '#fff', fontSize: 24, fontWeight: 'bold', marginTop: 4 },
-  formCard: { backgroundColor: '#1e293b', padding: 15, borderRadius: 12, marginBottom: 15 },
-  cardTitle: { color: '#f8fafc', fontSize: 15, fontWeight: 'bold', marginBottom: 10 },
+  bakiyeValue: { color: '#fff', fontSize: 26, fontWeight: 'bold', marginTop: 4 },
+  formCard: { backgroundColor: '#111827', padding: 16, borderRadius: 14, marginBottom: 15, borderWidth: 1, borderColor: '#1f2937' },
+  cardTitle: { color: '#f8fafc', fontSize: 15, fontWeight: 'bold', marginBottom: 12 },
   grafikRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 10 },
   grafikBoxGelir: { flex: 1, backgroundColor: '#064e3b', padding: 10, borderRadius: 8, marginRight: 5, alignItems: 'center' },
   grafikBoxGider: { flex: 1, backgroundColor: '#7f1d1d', padding: 10, borderRadius: 8, marginLeft: 5, alignItems: 'center' },
@@ -513,25 +539,25 @@ const styles = StyleSheet.create({
   barContainer: { flexDirection: 'row', height: 8, borderRadius: 4, overflow: 'hidden', backgroundColor: '#334155' },
   barGelir: { backgroundColor: '#10b981', height: '100%' },
   barGider: { backgroundColor: '#ef4444', height: '100%' },
-  tipRow: { flexDirection: 'row', marginBottom: 10 },
-  tipBtn: { flex: 1, padding: 10, backgroundColor: '#334155', alignItems: 'center', borderRadius: 8, marginHorizontal: 3 },
-  gelirActive: { backgroundColor: '#16a34a' },
-  giderActive: { backgroundColor: '#dc2626' },
+  tipRow: { flexDirection: 'row', marginBottom: 12 },
+  tipBtn: { flex: 1, padding: 10, backgroundColor: '#1f2937', alignItems: 'center', borderRadius: 8, marginHorizontal: 3, borderWidth: 1, borderColor: '#374151' },
+  gelirActive: { backgroundColor: '#16a34a', borderColor: '#22c55e' },
+  giderActive: { backgroundColor: '#dc2626', borderColor: '#ef4444' },
   tipText: { color: '#fff', fontWeight: 'bold', fontSize: 13 },
-  input: { backgroundColor: '#0f172a', color: '#fff', padding: 11, borderRadius: 8, marginBottom: 10, borderWidth: 1, borderColor: '#334155', fontSize: 14 },
+  input: { backgroundColor: '#090d16', color: '#fff', padding: 12, borderRadius: 8, marginBottom: 10, borderWidth: 1, borderColor: '#1f2937', fontSize: 14 },
   saveBtn: { backgroundColor: '#0284c7', padding: 12, borderRadius: 8, alignItems: 'center' },
   saveBtnText: { color: '#fff', fontWeight: 'bold', fontSize: 14 },
   sectionTitle: { color: '#f8fafc', fontSize: 15, fontWeight: 'bold', marginBottom: 8, marginTop: 10 },
-  historyItem: { backgroundColor: '#1e293b', padding: 12, borderRadius: 8, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
+  historyItem: { backgroundColor: '#111827', padding: 14, borderRadius: 10, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8, borderWidth: 1, borderColor: '#1f2937' },
   historyDesc: { color: '#f8fafc', fontWeight: '600', fontSize: 13 },
   historyDate: { color: '#94a3b8', fontSize: 11, marginTop: 2 },
   historyAmount: { fontSize: 14, fontWeight: 'bold' },
   textGelir: { color: '#4ade80' },
   textGider: { color: '#f87171' },
-  listItem: { backgroundColor: '#1e293b', padding: 12, borderRadius: 10, marginBottom: 8, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', borderWidth: 1, borderColor: '#334155' },
+  listItem: { backgroundColor: '#111827', padding: 14, borderRadius: 10, marginBottom: 8, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', borderWidth: 1, borderColor: '#1f2937' },
   listHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 3 },
   listTitle: { color: '#f8fafc', fontSize: 14, fontWeight: 'bold' },
-  listBadge: { backgroundColor: '#0369a1', color: '#fff', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 5, fontSize: 10, fontWeight: 'bold' },
+  listBadge: { backgroundColor: '#0284c7', color: '#fff', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 5, fontSize: 10, fontWeight: 'bold' },
   listSub: { color: '#38bdf8', fontSize: 12, marginBottom: 2 },
   listDesc: { color: '#94a3b8', fontSize: 12, fontStyle: 'italic' },
   actionColumn: { justifyContent: 'center', alignItems: 'flex-end', marginLeft: 10 },
@@ -539,8 +565,10 @@ const styles = StyleSheet.create({
   iconBtnEdit: { backgroundColor: '#0284c7', paddingHorizontal: 8, paddingVertical: 6, borderRadius: 6, marginBottom: 4, alignItems: 'center' },
   iconBtnDel: { backgroundColor: '#dc2626', paddingHorizontal: 8, paddingVertical: 6, borderRadius: 6, alignItems: 'center' },
   iconText: { fontSize: 14 },
-  emptyCard: { backgroundColor: '#1e293b', padding: 20, borderRadius: 10, alignItems: 'center' },
-  emptyText: { color: '#94a3b8', textAlign: 'center' },
-  alertCard: { backgroundColor: '#065f46', padding: 12, borderRadius: 8, marginBottom: 8, borderWidth: 1, borderColor: '#047857' },
-  alertText: { color: '#d1fae5', fontSize: 13, fontWeight: '600', lineHeight: 18 }
+  emptyCard: { backgroundColor: '#111827', padding: 20, borderRadius: 10, alignItems: 'center', borderWidth: 1, borderColor: '#1f2937' },
+  emptyText: { color: '#94a3b8', textAlign: 'center', fontSize: 13 },
+  alertCard: { backgroundColor: '#065f46', padding: 14, borderRadius: 10, marginBottom: 8, borderWidth: 1, borderColor: '#047857' },
+  alertText: { color: '#d1fae5', fontSize: 13, fontWeight: '600', lineHeight: 18 },
+  footerContainer: { marginTop: 25, alignItems: 'center', paddingVertical: 10, borderTopWidth: 1, borderTopColor: '#1f2937' },
+  footerText: { color: '#64748b', fontSize: 12, fontWeight: '600', letterSpacing: 0.5 }
 });
