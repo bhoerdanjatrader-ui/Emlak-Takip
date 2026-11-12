@@ -22,7 +22,6 @@ export default function App() {
   const [lang, setLang] = useState('tr');
   const [activeTab, setActiveTab] = useState('kasa');
 
-  // Kasa / Banka Hesapları
   const [hesaplar, setHesaplar] = useState([
     { id: '1', ad: 'Nakit Kasa', bakiye: 0 },
     { id: '2', ad: 'Ana Banka Hesabı', bakiye: 0 }
@@ -37,7 +36,6 @@ export default function App() {
   const [seciliHesap, setSeciliHesap] = useState('Nakit Kasa');
   const [islemGecmisi, setIslemGecmisi] = useState([]);
 
-  // Portföy State'leri
   const [portfoyler, setPortfoyler] = useState([]);
   const [pBaslik, setPBaslik] = useState('');
   const [pTip, setPTip] = useState('Satılık');
@@ -47,7 +45,6 @@ export default function App() {
   const [pAciklama, setPAciklama] = useState('');
   const [duzenlenenPortfoyId, setDuzenlenenPortfoyId] = useState(null);
 
-  // Talep State'leri
   const [talepler, setTalepler] = useState([]);
   const [tMusteri, setTMusteri] = useState('');
   const [tTip, setTTip] = useState('Satılık');
@@ -57,7 +54,6 @@ export default function App() {
   const [tKonum, setTKonum] = useState('');
   const [duzenlenenTalepId, setDuzenlenenTalepId] = useState(null);
 
-  // Filtreleme State'leri
   const [pSearchQuery, setPSearchQuery] = useState('');
   const [pSelectedCategory, setPSelectedCategory] = useState('TÜMÜ');
   const [pSelectedStatus, setPSelectedStatus] = useState('TÜMÜ');
@@ -68,7 +64,6 @@ export default function App() {
 
   const [bildirimler, setBildirimler] = useState([]);
 
-  // AsyncStorage Veri Yükleme
   useEffect(() => {
     const verileriYukle = async () => {
       try {
@@ -104,7 +99,6 @@ export default function App() {
     AsyncStorage.setItem('@toco_talepler', JSON.stringify(talepler));
   }, [talepler]);
 
-  // Eşleştirme Motoru
   useEffect(() => {
     let yeniEslesmeler = [];
     portfoyler.forEach(portfoy => {
@@ -261,7 +255,6 @@ export default function App() {
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor="#0b0f19" />
       
-      {/* Üst Başlık */}
       <View style={styles.header}>
         <View style={styles.titleBox}>
           <Text style={styles.headerTitle}>PATRON</Text>
@@ -271,7 +264,6 @@ export default function App() {
         </TouchableOpacity>
       </View>
 
-      {/* Sekmeler */}
       <View style={styles.tabContainer}>
         <TouchableOpacity style={[styles.tab, activeTab === 'kasa' && styles.activeTab]} onPress={() => setActiveTab('kasa')}>
           <Text style={[styles.tabText, activeTab === 'kasa' && styles.activeTabText]}>Kasa & Banka</Text>
@@ -291,7 +283,6 @@ export default function App() {
 
       <ScrollView contentContainerStyle={styles.content}>
         
-        {/* KASA & BANKA SEKMESİ */}
         {activeTab === 'kasa' && (
           <View>
             <View style={styles.bakiyeCard}>
@@ -299,7 +290,6 @@ export default function App() {
               <Text style={styles.bakiyeValue}>{toplamVarlik.toLocaleString()} TL</Text>
             </View>
 
-            {/* Yeni Tasarım Finansal Özet Kartları */}
             <View style={styles.formCard}>
               <Text style={styles.cardTitle}>Finansal Durum Özeti</Text>
               <View style={styles.summaryCardRow}>
@@ -331,7 +321,6 @@ export default function App() {
             <View style={styles.formCard}>
               <Text style={styles.cardTitle}>{duzenlenenHesapId ? 'Hesap Düzenle' : 'Yeni Hesap Ekle'}</Text>
               <TextInput style={styles.input} placeholder="Hesap Adı" placeholderTextColor="#64748b" value={yeniHesapAd} onChangeText={setYeniHesapAd} />
-              {/* Eksi (-) ve rakamları rahat girmek için keyboardType default yapıldı */}
               <TextInput style={styles.input} placeholder="Başlangıç Bakiyesi (Örn: -500 veya 1000)" placeholderTextColor="#64748b" keyboardType="default" value={yeniHesapBakiye} onChangeText={setYeniHesapBakiye} />
               <TouchableOpacity style={styles.saveBtn} onPress={hesapKaydet}>
                 <Text style={styles.saveBtnText}>{duzenlenenHesapId ? 'Güncelle' : 'Kaydet'}</Text>
@@ -375,7 +364,6 @@ export default function App() {
           </View>
         )}
 
-        {/* PORTFÖY SEKMESİ */}
         {activeTab === 'portfoy' && (
           <View>
             <View style={styles.formCard}>
@@ -414,7 +402,6 @@ export default function App() {
               )}
             </View>
 
-            {/* Düzeltilmiş Arama ve Filtreleme */}
             <View style={styles.filterCard}>
               <TextInput 
                 style={styles.searchInput} 
@@ -472,7 +459,6 @@ export default function App() {
           </View>
         )}
 
-        {/* TALEPLER SEKMESİ */}
         {activeTab === 'talepler' && (
           <View>
             <View style={styles.formCard}>
@@ -511,7 +497,6 @@ export default function App() {
               )}
             </View>
 
-            {/* Düzeltilmiş Arama ve Filtreleme */}
             <View style={styles.filterCard}>
               <TextInput 
                 style={styles.searchInput} 
@@ -565,7 +550,6 @@ export default function App() {
           </View>
         )}
 
-        {/* EŞLEŞMELER SEKMESİ */}
         {activeTab === 'eslesme' && (
           <View>
             <Text style={styles.sectionTitle}>Nokta Atışı Eşleşmeler</Text>
@@ -605,4 +589,64 @@ const styles = StyleSheet.create({
   tabText: { color: '#94a3b8', fontSize: 11, fontWeight: '600' },
   activeTabText: { color: '#38bdf8', fontWeight: 'bold' },
   content: { padding: 15, paddingBottom: 50 },
-  bakiyeCard: { backgroundColor: '#0284c7', padding: 20, borderRadius: 14, alignItems: 'center', marginBottom: 1
+  bakiyeCard: { backgroundColor: '#0284c7', padding: 20, borderRadius: 14, alignItems: 'center', marginBottom: 15 },
+  bakiyeLabel: { color: '#e0f2fe', fontSize: 13, fontWeight: '600' },
+  bakiyeValue: { color: '#fff', fontSize: 26, fontWeight: 'bold', marginTop: 4 },
+  formCard: { backgroundColor: '#111827', padding: 16, borderRadius: 14, marginBottom: 15, borderWidth: 1, borderColor: '#1f2937' },
+  filterCard: { backgroundColor: '#161e2e', padding: 14, borderRadius: 12, marginBottom: 15, borderWidth: 1, borderColor: '#22303c' },
+  searchInput: { backgroundColor: '#090d16', color: '#fff', padding: 11, borderRadius: 8, marginBottom: 10, borderWidth: 1, borderColor: '#1f2937', fontSize: 13 },
+  cardTitle: { color: '#f8fafc', fontSize: 15, fontWeight: 'bold', marginBottom: 12 },
+  labelSub: { color: '#94a3b8', fontSize: 12, marginBottom: 6, fontWeight: '600' },
+  filterLabelHeader: { color: '#94a3b8', fontSize: 11, marginBottom: 4, marginTop: 6, fontWeight: '600' },
+  summaryCardRow: { flexDirection: 'row', justifyContent: 'space-between', gap: 10 },
+  summaryCardGelir: { flex: 1, backgroundColor: '#064e3b', padding: 14, borderRadius: 10, alignItems: 'center', borderWidth: 1, borderColor: '#047857' },
+  summaryCardGider: { flex: 1, backgroundColor: '#7f1d1d', padding: 14, borderRadius: 10, alignItems: 'center', borderWidth: 1, borderColor: '#991b1b' },
+  summaryLabel: { color: '#e2e8f0', fontSize: 12, fontWeight: '600' },
+  summaryVal: { color: '#fff', fontSize: 15, fontWeight: 'bold', marginTop: 4 },
+  gridSelector: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginBottom: 12 },
+  gridBtn: { width: '48%', paddingVertical: 10, backgroundColor: '#1f2937', alignItems: 'center', borderRadius: 8, borderWidth: 1, borderColor: '#374151' },
+  gridBtnActive: { backgroundColor: '#4a1525', borderColor: '#701a2c' },
+  gridBtnText: { color: '#94a3b8', fontSize: 12, fontWeight: '600' },
+  gridBtnTextActive: { color: '#fff', fontWeight: 'bold' },
+  tipRow: { flexDirection: 'row', marginBottom: 12, gap: 6 },
+  tipBtn: { flex: 1, padding: 10, backgroundColor: '#1f2937', alignItems: 'center', borderRadius: 8, borderWidth: 1, borderColor: '#374151' },
+  gelirActive: { backgroundColor: '#4a1525', borderColor: '#701a2c' },
+  giderActive: { backgroundColor: '#4a1525', borderColor: '#701a2c' },
+  tipText: { color: '#fff', fontSize: 12, fontWeight: 'bold' },
+  input: { backgroundColor: '#090d16', color: '#fff', padding: 12, borderRadius: 8, marginBottom: 10, borderWidth: 1, borderColor: '#1f2937', fontSize: 14 },
+  saveBtn: { backgroundColor: '#0284c7', padding: 12, borderRadius: 8, alignItems: 'center' },
+  saveBtnText: { color: '#fff', fontWeight: 'bold', fontSize: 14 },
+  sectionTitle: { color: '#f8fafc', fontSize: 15, fontWeight: 'bold', marginVertical: 10 },
+  historyItem: { backgroundColor: '#111827', padding: 14, borderRadius: 10, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8, borderWidth: 1, borderColor: '#1f2937' },
+  historyDesc: { color: '#f8fafc', fontWeight: '600', fontSize: 13 },
+  historyDate: { color: '#94a3b8', fontSize: 11, marginTop: 2 },
+  historyAmount: { fontSize: 14, fontWeight: 'bold' },
+  textGelir: { color: '#4ade80' },
+  textGider: { color: '#f87171' },
+  listItem: { backgroundColor: '#111827', padding: 14, borderRadius: 10, marginBottom: 8, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', borderWidth: 1, borderColor: '#1f2937' },
+  listHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 },
+  listTitle: { color: '#f8fafc', fontSize: 14, fontWeight: 'bold' },
+  listBadge: { backgroundColor: '#0284c7', color: '#fff', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 5, fontSize: 10, fontWeight: 'bold' },
+  listSub: { color: '#38bdf8', fontSize: 12, marginBottom: 2 },
+  listDesc: { color: '#94a3b8', fontSize: 12, fontStyle: 'italic' },
+  actionColumn: { justifyContent: 'center', alignItems: 'flex-end', marginLeft: 10 },
+  actionRow: { flexDirection: 'row', gap: 6 },
+  iconBtnEdit: { backgroundColor: '#0284c7', paddingHorizontal: 8, paddingVertical: 6, borderRadius: 6, marginBottom: 4, alignItems: 'center' },
+  iconBtnDel: { backgroundColor: '#dc2626', paddingHorizontal: 8, paddingVertical: 6, borderRadius: 6, alignItems: 'center' },
+  iconText: { fontSize: 14 },
+  emptyCard: { backgroundColor: '#111827', padding: 20, borderRadius: 10, alignItems: 'center', borderWidth: 1, borderColor: '#1f2937' },
+  emptyText: { color: '#94a3b8', textAlign: 'center', fontSize: 13 },
+  alertCard: { backgroundColor: '#065f46', padding: 14, borderRadius: 10, marginBottom: 8, borderWidth: 1, borderColor: '#047857' },
+  alertText: { color: '#d1fae5', fontSize: 13, fontWeight: '600', lineHeight: 18 },
+  footerContainer: { marginTop: 25, alignItems: 'center', paddingVertical: 10, borderTopWidth: 1, borderTopColor: '#1f2937' },
+  footerText: { color: '#64748b', fontSize: 12, fontWeight: '600', letterSpacing: 0.5 },
+  chipRow: { flexDirection: 'row', marginBottom: 8 },
+  chip: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 16, backgroundColor: '#1f2937', marginRight: 6, borderWidth: 1, borderColor: '#374151' },
+  chipActive: { backgroundColor: '#4a1525', borderColor: '#701a2c' },
+  chipText: { color: '#94a3b8', fontSize: 12, fontWeight: '600' },
+  chipTextActive: { color: '#fff' },
+  subChip: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8, backgroundColor: '#090d16', marginRight: 6, borderWidth: 1, borderColor: '#1f2937' },
+  subChipActive: { backgroundColor: '#38bdf8', borderColor: '#38bdf8' },
+  subChipText: { color: '#94a3b8', fontSize: 11 },
+  subChipTextActive: { color: '#090d16', fontWeight: 'bold' }
+});
