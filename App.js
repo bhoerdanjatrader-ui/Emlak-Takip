@@ -447,9 +447,9 @@ export default function App() {
           <View>
             <View style={dynStyles.formCard}>
               <Text style={dynStyles.cardTitle}>{duzenlenenPortfoyId ? 'Portföy Düzenle' : 'Portföy Ekle'}</Text>
-              <TextInput style={dynStyles.input} placeholder="Portföy Başlığı" placeholderTextColor={isDark ? '#9ca3af' : '#9ca3af'} value={pBaslik} onChangeText={setPBaslik} />
+              <TextInput style={dynStyles.input} placeholder="Portföy Başlığı" placeholderTextColor={isDark ? '#9ca3af' : '#6b7280'} value={pBaslik} onChangeText={setPBaslik} />
               
-              <Text style={dynStyles.labelSub}>Kategori:</Text>
+              <Text style={dynStyles.labelSub}>Kategori Seçin:</Text>
               <View style={styles.gridSelector}>
                 {['Konut', 'Arsa', 'İş Yeri', 'Zeytinlik/Tarla'].map(cat => (
                   <TouchableOpacity key={cat} onPress={() => setPCategory(cat)} style={[dynStyles.gridBtn, pCategory === cat && dynStyles.gridBtnActive]}>
@@ -458,7 +458,7 @@ export default function App() {
                 ))}
               </View>
 
-              <Text style={dynStyles.labelSub}>İşlem Tipi:</Text>
+              <Text style={dynStyles.labelSub}>İşlem Tipi Seçin:</Text>
               <View style={styles.gridSelector}>
                 {['Satılık', 'Kiralık', 'Kat Karşılığı'].map(st => (
                   <TouchableOpacity key={st} onPress={() => setPTip(st)} style={[dynStyles.gridBtn, pTip === st && dynStyles.gridBtnActive]}>
@@ -467,9 +467,9 @@ export default function App() {
                 ))}
               </View>
 
-              <TextInput style={dynStyles.input} placeholder="Fiyat (TL)" placeholderTextColor={isDark ? '#9ca3af' : '#9ca3af'} keyboardType="default" value={pFiyat} onChangeText={setPFiyat} />
-              <TextInput style={dynStyles.input} placeholder="Konum / Bölge" placeholderTextColor={isDark ? '#9ca3af' : '#9ca3af'} value={pKonum} onChangeText={setPKonum} />
-              <TextInput style={[dynStyles.input, { height: 70 }]} placeholder="Açıklama" placeholderTextColor={isDark ? '#9ca3af' : '#9ca3af'} multiline value={pAciklama} onChangeText={setPAciklama} />
+              <TextInput style={dynStyles.input} placeholder="Fiyat (TL)" placeholderTextColor={isDark ? '#9ca3af' : '#6b7280'} keyboardType="default" value={pFiyat} onChangeText={setPFiyat} />
+              <TextInput style={dynStyles.input} placeholder="Konum / Bölge" placeholderTextColor={isDark ? '#9ca3af' : '#6b7280'} value={pKonum} onChangeText={setPKonum} />
+              <TextInput style={[dynStyles.input, { height: 70 }]} placeholder="Açıklama" placeholderTextColor={isDark ? '#9ca3af' : '#6b7280'} multiline value={pAciklama} onChangeText={setPAciklama} />
               
               <TouchableOpacity style={styles.saveBtn} onPress={portfoyKaydet}>
                 <Text style={styles.saveBtnText}>{duzenlenenPortfoyId ? 'Güncelle' : 'Kaydet'}</Text>
@@ -485,7 +485,7 @@ export default function App() {
               <TextInput 
                 style={dynStyles.searchInput} 
                 placeholder="🔍 Portföy ara (Başlık, bölge)..." 
-                placeholderTextColor={isDark ? '#9ca3af' : '#9ca3af'}
+                placeholderTextColor={isDark ? '#9ca3af' : '#6b7280'}
                 value={pSearchQuery}
                 onChangeText={setPSearchQuery}
               />
@@ -515,14 +515,14 @@ export default function App() {
                 <View key={p.id} style={dynStyles.listItem}>
                   <View style={{flex: 1}}>
                     <View style={styles.listHeader}>
-                      <Text style={styles.listTitle}>{p.baslik}</Text>
+                      <Text style={dynStyles.listTitle}>{p.baslik}</Text>
                       <View style={{flexDirection: 'row', gap: 4}}>
                         <Text style={styles.listBadge}>{p.category || 'Konut'}</Text>
                         <Text style={styles.listBadgeTip}>{p.tip}</Text>
                       </View>
                     </View>
-                    <Text style={styles.listSub}>📍 {p.konum} | 💰 {Number(p.fiyat || 0).toLocaleString()} TL</Text>
-                    {p.aciklama ? <Text style={styles.listDesc}>{p.aciklama}</Text> : null}
+                    <Text style={dynStyles.listSub}>📍 {p.konum} | 💰 {Number(p.fiyat || 0).toLocaleString()} TL</Text>
+                    {p.aciklama ? <Text style={dynStyles.listDesc}>{p.aciklama}</Text> : null}
                   </View>
                   <View style={styles.actionColumn}>
                     <TouchableOpacity style={styles.iconBtnEdit} onPress={() => portfoyDuzenleBaslat(p)}>
@@ -542,9 +542,9 @@ export default function App() {
           <View>
             <View style={dynStyles.formCard}>
               <Text style={dynStyles.cardTitle}>{duzenlenenTalepId ? 'Talep Düzenle' : 'Talep Ekle'}</Text>
-              <TextInput style={dynStyles.input} placeholder="Müşteri Adı" placeholderTextColor={isDark ? '#9ca3af' : '#9ca3af'} value={tMusteri} onChangeText={setTMusteri} />
+              <TextInput style={dynStyles.input} placeholder="Müşteri Adı" placeholderTextColor={isDark ? '#9ca3af' : '#6b7280'} value={tMusteri} onChangeText={setTMusteri} />
               
-              <Text style={dynStyles.labelSub}>Kategori:</Text>
+              <Text style={dynStyles.labelSub}>Kategori Seçin:</Text>
               <View style={styles.gridSelector}>
                 {['Konut', 'Arsa', 'İş Yeri', 'Zeytinlik/Tarla'].map(cat => (
                   <TouchableOpacity key={cat} onPress={() => setTCategory(cat)} style={[dynStyles.gridBtn, tCategory === cat && dynStyles.gridBtnActive]}>
@@ -553,7 +553,7 @@ export default function App() {
                 ))}
               </View>
 
-              <Text style={dynStyles.labelSub}>İşlem Tipi:</Text>
+              <Text style={dynStyles.labelSub}>İşlem Tipi Seçin:</Text>
               <View style={styles.gridSelector}>
                 {['Satılık', 'Kiralık', 'Kat Karşılığı'].map(st => (
                   <TouchableOpacity key={st} onPress={() => setTTip(st)} style={[dynStyles.gridBtn, tTip === st && dynStyles.gridBtnActive]}>
@@ -562,9 +562,9 @@ export default function App() {
                 ))}
               </View>
 
-              <TextInput style={dynStyles.input} placeholder="Max Bütçe (TL)" placeholderTextColor={isDark ? '#9ca3af' : '#9ca3af'} keyboardType="default" value={tMaxFiyat} onChangeText={setTMaxFiyat} />
-              <TextInput style={dynStyles.input} placeholder="Aranan Gayrimenkul" placeholderTextColor={isDark ? '#9ca3af' : '#9ca3af'} value={tAranan} onChangeText={setTAranan} />
-              <TextInput style={dynStyles.input} placeholder="Bölge" placeholderTextColor={isDark ? '#9ca3af' : '#9ca3af'} value={tKonum} onChangeText={setTKonum} />
+              <TextInput style={dynStyles.input} placeholder="Max Bütçe (TL)" placeholderTextColor={isDark ? '#9ca3af' : '#6b7280'} keyboardType="default" value={tMaxFiyat} onChangeText={setTMaxFiyat} />
+              <TextInput style={dynStyles.input} placeholder="Aranan Gayrimenkul" placeholderTextColor={isDark ? '#9ca3af' : '#6b7280'} value={tAranan} onChangeText={setTAranan} />
+              <TextInput style={dynStyles.input} placeholder="Bölge" placeholderTextColor={isDark ? '#9ca3af' : '#6b7280'} value={tKonum} onChangeText={setTKonum} />
 
               <TouchableOpacity style={styles.saveBtn} onPress={talepKaydet}>
                 <Text style={styles.saveBtnText}>{duzenlenenTalepId ? 'Güncelle' : 'Kaydet'}</Text>
@@ -580,7 +580,7 @@ export default function App() {
               <TextInput 
                 style={dynStyles.searchInput} 
                 placeholder="🔍 Talep ara (Müşteri, bölge)..." 
-                placeholderTextColor={isDark ? '#9ca3af' : '#9ca3af'}
+                placeholderTextColor={isDark ? '#9ca3af' : '#6b7280'}
                 value={tSearchQuery}
                 onChangeText={setTSearchQuery}
               />
@@ -610,14 +610,14 @@ export default function App() {
                 <View key={talep.id} style={dynStyles.listItem}>
                   <View style={{flex: 1}}>
                     <View style={styles.listHeader}>
-                      <Text style={styles.listTitle}>{talep.musteri}</Text>
+                      <Text style={dynStyles.listTitle}>{talep.musteri}</Text>
                       <View style={{flexDirection: 'row', gap: 4}}>
                         <Text style={styles.listBadge}>{talep.category || 'Konut'}</Text>
                         <Text style={styles.listBadgeTip}>{talep.tip}</Text>
                       </View>
                     </View>
-                    <Text style={styles.listSub}>🔍 {talep.aranan} | 📍 {talep.konum}</Text>
-                    <Text style={styles.listDesc}>Max Bütçe: {Number(talep.maxFiyat || 0).toLocaleString()} TL</Text>
+                    <Text style={dynStyles.listSub}>🔍 {talep.aranan} | 📍 {talep.konum}</Text>
+                    <Text style={dynStyles.listDesc}>Max Bütçe: {Number(talep.maxFiyat || 0).toLocaleString()} TL</Text>
                   </View>
                   <View style={styles.actionColumn}>
                     <TouchableOpacity style={styles.iconBtnEdit} onPress={() => talepDuzenleBaslat(talep)}><Text style={styles.iconText}>✏️</Text></TouchableOpacity>
@@ -701,12 +701,12 @@ export default function App() {
 
             <View style={dynStyles.formCard}>
               <Text style={dynStyles.cardTitle}>Yeni Kredi / Borç Ekle</Text>
-              <TextInput style={dynStyles.input} placeholder="Banka Adı / Kredi Türü" placeholderTextColor={isDark ? '#9ca3af' : '#9ca3af'} value={krediBanka} onChangeText={setKrediBanka} />
-              <TextInput style={dynStyles.input} placeholder="Kalan Toplam Borç (TL)" placeholderTextColor={isDark ? '#9ca3af' : '#9ca3af'} keyboardType="default" value={krediTutar} onChangeText={setKrediTutar} />
-              <TextInput style={dynStyles.input} placeholder="Ödeme Günü (Örn: 15)" placeholderTextColor={isDark ? '#9ca3af' : '#9ca3af'} keyboardType="default" value={krediOdemeGunu} onChangeText={setKrediOdemeGunu} />
+              <TextInput style={dynStyles.input} placeholder="Banka Adı / Kredi Türü" placeholderTextColor={isDark ? '#9ca3af' : '#6b7280'} value={krediBanka} onChangeText={setKrediBanka} />
+              <TextInput style={dynStyles.input} placeholder="Kalan Toplam Borç (TL)" placeholderTextColor={isDark ? '#9ca3af' : '#6b7280'} keyboardType="default" value={krediTutar} onChangeText={setKrediTutar} />
+              <TextInput style={dynStyles.input} placeholder="Ödeme Günü (Örn: 15)" placeholderTextColor={isDark ? '#9ca3af' : '#6b7280'} keyboardType="default" value={krediOdemeGunu} onChangeText={setKrediOdemeGunu} />
               <View style={{flexDirection: 'row', gap: 10}}>
-                <TextInput style={[dynStyles.input, {flex: 1}]} placeholder="Kaçıncı Taksit (Örn: 5)" placeholderTextColor={isDark ? '#9ca3af' : '#9ca3af'} keyboardType="default" value={krediGuncelTaksit} onChangeText={setKrediGuncelTaksit} />
-                <TextInput style={[dynStyles.input, {flex: 1}]} placeholder="Toplam Taksit (Örn: 36)" placeholderTextColor={isDark ? '#9ca3af' : '#9ca3af'} keyboardType="default" value={krediToplamTaksit} onChangeText={setKrediToplamTaksit} />
+                <TextInput style={[dynStyles.input, {flex: 1}]} placeholder="Kaçıncı Taksit (Örn: 5)" placeholderTextColor={isDark ? '#9ca3af' : '#6b7280'} keyboardType="default" value={krediGuncelTaksit} onChangeText={setKrediGuncelTaksit} />
+                <TextInput style={[dynStyles.input, {flex: 1}]} placeholder="Toplam Taksit (Örn: 36)" placeholderTextColor={isDark ? '#9ca3af' : '#6b7280'} keyboardType="default" value={krediToplamTaksit} onChangeText={setKrediToplamTaksit} />
               </View>
               <TouchableOpacity style={styles.saveBtn} onPress={krediKaydet}>
                 <Text style={styles.saveBtnText}>Krediyi Kaydet</Text>
@@ -729,8 +729,8 @@ export default function App() {
 
             <View style={dynStyles.formCard}>
               <Text style={dynStyles.cardTitle}>{duzenlenenHesapId ? 'Hesap Düzenle' : 'Yeni Hesap Ekle'}</Text>
-              <TextInput style={dynStyles.input} placeholder="Hesap Adı" placeholderTextColor={isDark ? '#9ca3af' : '#9ca3af'} value={yeniHesapAd} onChangeText={setYeniHesapAd} />
-              <TextInput style={dynStyles.input} placeholder="Başlangıç Bakiyesi (Örn: -500 veya 1000)" placeholderTextColor={isDark ? '#9ca3af' : '#9ca3af'} keyboardType="default" value={yeniHesapBakiye} onChangeText={setYeniHesapBakiye} />
+              <TextInput style={dynStyles.input} placeholder="Hesap Adı" placeholderTextColor={isDark ? '#9ca3af' : '#6b7280'} value={yeniHesapAd} onChangeText={setYeniHesapAd} />
+              <TextInput style={dynStyles.input} placeholder="Başlangıç Bakiyesi (Örn: -500 veya 1000)" placeholderTextColor={isDark ? '#9ca3af' : '#6b7280'} keyboardType="default" value={yeniHesapBakiye} onChangeText={setYeniHesapBakiye} />
               <TouchableOpacity style={styles.saveBtn} onPress={hesapKaydet}>
                 <Text style={styles.saveBtnText}>{duzenlenenHesapId ? 'Güncelle' : 'Kaydet'}</Text>
               </TouchableOpacity>
@@ -746,8 +746,8 @@ export default function App() {
                   <Text style={[styles.gridBtnText, islemTipi === 'gider' && styles.gridBtnTextActive]}>Gider</Text>
                 </TouchableOpacity>
               </View>
-              <TextInput style={dynStyles.input} placeholder="Tutar (TL)" placeholderTextColor={isDark ? '#9ca3af' : '#9ca3af'} keyboardType="default" value={tutar} onChangeText={setTutar} />
-              <TextInput style={dynStyles.input} placeholder="Açıklama" placeholderTextColor={isDark ? '#9ca3af' : '#9ca3af'} value={aciklama} onChangeText={setAciklama} />
+              <TextInput style={dynStyles.input} placeholder="Tutar (TL)" placeholderTextColor={isDark ? '#9ca3af' : '#6b7280'} keyboardType="default" value={tutar} onChangeText={setTutar} />
+              <TextInput style={dynStyles.input} placeholder="Açıklama" placeholderTextColor={isDark ? '#9ca3af' : '#6b7280'} value={aciklama} onChangeText={setAciklama} />
               <TouchableOpacity style={styles.saveBtn} onPress={islemKaydet}>
                 <Text style={styles.saveBtnText}>Kaydet</Text>
               </TouchableOpacity>
@@ -801,7 +801,7 @@ export default function App() {
                   <TextInput
                     style={dynStyles.input}
                     placeholder="Yeni 4 Haneli PIN Şifre"
-                    placeholderTextColor={isDark ? '#9ca3af' : '#9ca3af'}
+                    placeholderTextColor={isDark ? '#9ca3af' : '#6b7280'}
                     secureTextEntry
                     keyboardType="numeric"
                     value={yeniPinInput}
@@ -850,7 +850,7 @@ const getDynamicStyles = (isDark) => StyleSheet.create({
   filterCard: { backgroundColor: isDark ? '#18181b' : '#ffffff', padding: 14, borderRadius: 12, marginBottom: 15, borderWidth: 1, borderColor: isDark ? '#27272a' : '#e5e7eb' },
   searchInput: { backgroundColor: isDark ? '#121214' : '#f9fafb', color: isDark ? '#ffffff' : '#111827', padding: 11, borderRadius: 8, marginBottom: 10, borderWidth: 1, borderColor: isDark ? '#3f3f46' : '#d1d5db', fontSize: 13 },
   cardTitle: { color: isDark ? '#ffffff' : '#111827', fontSize: 15, fontWeight: 'bold', marginBottom: 12 },
-  labelSub: { color: isDark ? '#f4f4f5' : '#1f2937', fontSize: 12, marginBottom: 6, fontWeight: '600' },
+  labelSub: { color: isDark ? '#f4f4f5' : '#1f2937', fontSize: 12, marginBottom: 6, marginTop: 4, fontWeight: '600' },
   filterLabelHeader: { color: isDark ? '#f4f4f5' : '#1f2937', fontSize: 11, marginBottom: 4, marginTop: 6, fontWeight: '600' },
   input: { backgroundColor: isDark ? '#121214' : '#f9fafb', color: isDark ? '#ffffff' : '#111827', padding: 12, borderRadius: 8, marginBottom: 10, borderWidth: 1, borderColor: isDark ? '#3f3f46' : '#d1d5db', fontSize: 14 },
   sectionTitle: { color: isDark ? '#ffffff' : '#111827', fontSize: 15, fontWeight: 'bold', marginVertical: 10 },
@@ -894,9 +894,9 @@ const styles = StyleSheet.create({
   summaryLabel: { color: '#e2e8f0', fontSize: 12, fontWeight: '600' },
   summaryVal: { color: '#ffffff', fontSize: 15, fontWeight: 'bold', marginTop: 4 },
   gridSelector: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginBottom: 12 },
-  gridBtn: { width: '31%', paddingVertical: 10, backgroundColor: '#27272a', alignItems: 'center', borderRadius: 8, borderWidth: 1, borderColor: '#3f3f46' },
+  gridBtn: { width: '48%', paddingVertical: 10, backgroundColor: '#27272a', alignItems: 'center', borderRadius: 8, borderWidth: 1, borderColor: '#3f3f46' },
   gridBtnActive: { backgroundColor: '#6A1B29', borderColor: '#8E2437' },
-  gridBtnText: { color: '#e4e4e7', fontSize: 11, fontWeight: '600' },
+  gridBtnText: { color: '#ffffff', fontSize: 12, fontWeight: '600' },
   gridBtnTextActive: { color: '#ffffff', fontWeight: 'bold' },
   saveBtn: { backgroundColor: '#6A1B29', padding: 12, borderRadius: 8, alignItems: 'center' },
   saveBtnText: { color: '#ffffff', fontWeight: 'bold', fontSize: 14 },
