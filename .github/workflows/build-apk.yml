@@ -22,12 +22,12 @@ jobs:
           distribution: 'temurin'
           java-version: 17
 
-      - name: Install dependencies
-        run: npm install
+      - name: Install dependencies with Yarn
+        run: yarn install --no-lockfile
 
       - name: Prebuild and Build APK Release
         run: |
-          CI=1 node node_modules/expo/bin/cli.js prebuild --platform android --clean
+          yarn expo prebuild --platform android --clean
           cd android
           chmod +x gradlew
           ./gradlew assembleRelease
