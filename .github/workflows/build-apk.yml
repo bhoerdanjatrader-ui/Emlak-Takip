@@ -22,13 +22,13 @@ jobs:
           distribution: 'temurin'
           java-version: 17
 
-      - name: Setup Expo
-        uses: expo/expo-github-action@v8
-        with:
-          expo-version: latest
+      - name: Install dependencies with Yarn
+        run: yarn install --no-lockfile
 
-      - name: Install dependencies
-        run: npm install
+      - name: Install EAS CLI Globally
+        run: npm install -g eas-cli
 
-      - name: Build APK
+      - name: Build Android APK
         run: npx eas-cli build --platform android --profile preview --non-interactive --local
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
