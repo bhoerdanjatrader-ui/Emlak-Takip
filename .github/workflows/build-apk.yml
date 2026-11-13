@@ -25,11 +25,9 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Prebuild Android
-        run: npx expo prebuild --platform android --clean --non-interactive
-
-      - name: Build APK Release
+      - name: Prebuild and Build APK Release
         run: |
+          npx expo prebuild --platform android --clean --non-interactive
           cd android
           chmod +x gradlew
           ./gradlew assembleRelease
