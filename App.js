@@ -449,20 +449,20 @@ export default function App() {
               <Text style={dynStyles.cardTitle}>{duzenlenenPortfoyId ? 'Portföy Düzenle' : 'Portföy Ekle'}</Text>
               <TextInput style={dynStyles.input} placeholder="Portföy Başlığı" placeholderTextColor={isDark ? '#9ca3af' : '#6b7280'} value={pBaslik} onChangeText={setPBaslik} />
               
-              <Text style={dynStyles.labelSub}>Kategori Seçin:</Text>
-              <View style={styles.gridSelector}>
+              <Text style={dynStyles.labelSub}>Kategori:</Text>
+              <View style={styles.formGridContainer}>
                 {['Konut', 'Arsa', 'İş Yeri', 'Zeytinlik/Tarla'].map(cat => (
-                  <TouchableOpacity key={cat} onPress={() => setPCategory(cat)} style={[dynStyles.gridBtn, pCategory === cat && dynStyles.gridBtnActive]}>
-                    <Text style={[dynStyles.gridBtnText, pCategory === cat && dynStyles.gridBtnTextActive]}>{cat}</Text>
+                  <TouchableOpacity key={cat} onPress={() => setPCategory(cat)} style={[dynStyles.formGridBtn, pCategory === cat && dynStyles.formGridBtnActive]}>
+                    <Text style={[dynStyles.formGridBtnText, pCategory === cat && dynStyles.formGridBtnTextActive]}>{cat}</Text>
                   </TouchableOpacity>
                 ))}
               </View>
 
-              <Text style={dynStyles.labelSub}>İşlem Tipi Seçin:</Text>
-              <View style={styles.gridSelector}>
+              <Text style={dynStyles.labelSub}>İşlem Tipi:</Text>
+              <View style={styles.formGridContainer}>
                 {['Satılık', 'Kiralık', 'Kat Karşılığı'].map(st => (
-                  <TouchableOpacity key={st} onPress={() => setPTip(st)} style={[dynStyles.gridBtn, pTip === st && dynStyles.gridBtnActive]}>
-                    <Text style={[dynStyles.gridBtnText, pTip === st && dynStyles.gridBtnTextActive]}>{st}</Text>
+                  <TouchableOpacity key={st} onPress={() => setPTip(st)} style={[dynStyles.formGridBtn, pTip === st && dynStyles.formGridBtnActive]}>
+                    <Text style={[dynStyles.formGridBtnText, pTip === st && dynStyles.formGridBtnTextActive]}>{st}</Text>
                   </TouchableOpacity>
                 ))}
               </View>
@@ -544,20 +544,20 @@ export default function App() {
               <Text style={dynStyles.cardTitle}>{duzenlenenTalepId ? 'Talep Düzenle' : 'Talep Ekle'}</Text>
               <TextInput style={dynStyles.input} placeholder="Müşteri Adı" placeholderTextColor={isDark ? '#9ca3af' : '#6b7280'} value={tMusteri} onChangeText={setTMusteri} />
               
-              <Text style={dynStyles.labelSub}>Kategori Seçin:</Text>
-              <View style={styles.gridSelector}>
+              <Text style={dynStyles.labelSub}>Kategori:</Text>
+              <View style={styles.formGridContainer}>
                 {['Konut', 'Arsa', 'İş Yeri', 'Zeytinlik/Tarla'].map(cat => (
-                  <TouchableOpacity key={cat} onPress={() => setTCategory(cat)} style={[dynStyles.gridBtn, tCategory === cat && dynStyles.gridBtnActive]}>
-                    <Text style={[dynStyles.gridBtnText, tCategory === cat && dynStyles.gridBtnTextActive]}>{cat}</Text>
+                  <TouchableOpacity key={cat} onPress={() => setTCategory(cat)} style={[dynStyles.formGridBtn, tCategory === cat && dynStyles.formGridBtnActive]}>
+                    <Text style={[dynStyles.formGridBtnText, tCategory === cat && dynStyles.formGridBtnTextActive]}>{cat}</Text>
                   </TouchableOpacity>
                 ))}
               </View>
 
-              <Text style={dynStyles.labelSub}>İşlem Tipi Seçin:</Text>
-              <View style={styles.gridSelector}>
+              <Text style={dynStyles.labelSub}>İşlem Tipi:</Text>
+              <View style={styles.formGridContainer}>
                 {['Satılık', 'Kiralık', 'Kat Karşılığı'].map(st => (
-                  <TouchableOpacity key={st} onPress={() => setTTip(st)} style={[dynStyles.gridBtn, tTip === st && dynStyles.gridBtnActive]}>
-                    <Text style={[dynStyles.gridBtnText, tTip === st && dynStyles.gridBtnTextActive]}>{st}</Text>
+                  <TouchableOpacity key={st} onPress={() => setTTip(st)} style={[dynStyles.formGridBtn, tTip === st && dynStyles.formGridBtnActive]}>
+                    <Text style={[dynStyles.formGridBtnText, tTip === st && dynStyles.formGridBtnTextActive]}>{st}</Text>
                   </TouchableOpacity>
                 ))}
               </View>
@@ -610,14 +610,14 @@ export default function App() {
                 <View key={talep.id} style={dynStyles.listItem}>
                   <View style={{flex: 1}}>
                     <View style={styles.listHeader}>
-                      <Text style={dynStyles.listTitle}>{talep.musteri}</Text>
+                      <Text style={styles.listTitle}>{talep.musteri}</Text>
                       <View style={{flexDirection: 'row', gap: 4}}>
                         <Text style={styles.listBadge}>{talep.category || 'Konut'}</Text>
                         <Text style={styles.listBadgeTip}>{talep.tip}</Text>
                       </View>
                     </View>
-                    <Text style={dynStyles.listSub}>🔍 {talep.aranan} | 📍 {talep.konum}</Text>
-                    <Text style={dynStyles.listDesc}>Max Bütçe: {Number(talep.maxFiyat || 0).toLocaleString()} TL</Text>
+                    <Text style={styles.listSub}>🔍 {talep.aranan} | 📍 {talep.konum}</Text>
+                    <Text style={styles.listDesc}>Max Bütçe: {Number(talep.maxFiyat || 0).toLocaleString()} TL</Text>
                   </View>
                   <View style={styles.actionColumn}>
                     <TouchableOpacity style={styles.iconBtnEdit} onPress={() => talepDuzenleBaslat(talep)}><Text style={styles.iconText}>✏️</Text></TouchableOpacity>
@@ -738,12 +738,12 @@ export default function App() {
 
             <View style={dynStyles.formCard}>
               <Text style={dynStyles.cardTitle}>Gelir / Gider Ekle</Text>
-              <View style={styles.gridSelector}>
-                <TouchableOpacity style={[styles.gridBtn, islemTipi === 'gelir' && styles.gridBtnActive]} onPress={() => setIslemTipi('gelir')}>
-                  <Text style={[styles.gridBtnText, islemTipi === 'gelir' && styles.gridBtnTextActive]}>Gelir</Text>
+              <View style={dynStyles.formGridContainer}>
+                <TouchableOpacity style={[dynStyles.formGridBtn, islemTipi === 'gelir' && dynStyles.formGridBtnActive]} onPress={() => setIslemTipi('gelir')}>
+                  <Text style={[dynStyles.formGridBtnText, islemTipi === 'gelir' && dynStyles.formGridBtnTextActive]}>Gelir</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={[styles.gridBtn, islemTipi === 'gider' && styles.gridBtnActive]} onPress={() => setIslemTipi('gider')}>
-                  <Text style={[styles.gridBtnText, islemTipi === 'gider' && styles.gridBtnTextActive]}>Gider</Text>
+                <TouchableOpacity style={[dynStyles.formGridBtn, islemTipi === 'gider' && dynStyles.formGridBtnActive]} onPress={() => setIslemTipi('gider')}>
+                  <Text style={[dynStyles.formGridBtnText, islemTipi === 'gider' && dynStyles.formGridBtnTextActive]}>Gider</Text>
                 </TouchableOpacity>
               </View>
               <TextInput style={dynStyles.input} placeholder="Tutar (TL)" placeholderTextColor={isDark ? '#9ca3af' : '#6b7280'} keyboardType="default" value={tutar} onChangeText={setTutar} />
@@ -784,12 +784,12 @@ export default function App() {
             <View style={dynStyles.formCard}>
               <Text style={dynStyles.cardTitle}>🎨 Görünüm & Tema</Text>
               <Text style={dynStyles.labelSub}>Uygulama Tema Modu:</Text>
-              <View style={styles.gridSelector}>
-                <TouchableOpacity style={[styles.gridBtn, isDark && styles.gridBtnActive]} onPress={() => temaDegistir('dark')}>
-                  <Text style={[styles.gridBtnText, isDark && styles.gridBtnTextActive]}>Karanlık Mod 🌙</Text>
+              <View style={dynStyles.formGridContainer}>
+                <TouchableOpacity style={[dynStyles.formGridBtn, isDark && dynStyles.formGridBtnActive]} onPress={() => temaDegistir('dark')}>
+                  <Text style={[dynStyles.formGridBtnText, isDark && dynStyles.formGridBtnTextActive]}>Karanlık Mod 🌙</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={[styles.gridBtn, !isDark && styles.gridBtnActive]} onPress={() => temaDegistir('light')}>
-                  <Text style={[styles.gridBtnText, !isDark && styles.gridBtnTextActive]}>Aydınlık Mod ☀️</Text>
+                <TouchableOpacity style={[dynStyles.formGridBtn, !isDark && dynStyles.formGridBtnActive]} onPress={() => temaDegistir('light')}>
+                  <Text style={[dynStyles.formGridBtnText, !isDark && dynStyles.formGridBtnTextActive]}>Aydınlık Mod ☀️</Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -870,7 +870,12 @@ const getDynamicStyles = (isDark) => StyleSheet.create({
   subChip: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8, backgroundColor: isDark ? '#121214' : '#f9fafb', marginRight: 6, borderWidth: 1, borderColor: isDark ? '#3f3f46' : '#d1d5db' },
   subChipActive: { backgroundColor: '#6A1B29', borderColor: '#6A1B29' },
   subChipText: { color: isDark ? '#e4e4e7' : '#374151', fontSize: 11 },
-  subChipTextActive: { color: '#ffffff', fontWeight: 'bold' }
+  subChipTextActive: { color: '#ffffff', fontWeight: 'bold' },
+  formGridContainer: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginBottom: 12 },
+  formGridBtn: { width: '48%', paddingVertical: 10, backgroundColor: isDark ? '#27272a' : '#f9fafb', alignItems: 'center', borderRadius: 8, borderWidth: 1, borderColor: isDark ? '#3f3f46' : '#d1d5db' },
+  formGridBtnActive: { backgroundColor: '#6A1B29', borderColor: '#8E2437' },
+  formGridBtnText: { color: isDark ? '#f4f4f5' : '#1f2937', fontSize: 12, fontWeight: '600' },
+  formGridBtnTextActive: { color: '#ffffff', fontWeight: 'bold' }
 });
 
 const styles = StyleSheet.create({
@@ -893,11 +898,6 @@ const styles = StyleSheet.create({
   summaryCardGider: { flex: 1, backgroundColor: '#7f1d1d', padding: 14, borderRadius: 10, alignItems: 'center', borderWidth: 1, borderColor: '#991b1b' },
   summaryLabel: { color: '#e2e8f0', fontSize: 12, fontWeight: '600' },
   summaryVal: { color: '#ffffff', fontSize: 15, fontWeight: 'bold', marginTop: 4 },
-  gridSelector: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginBottom: 12 },
-  gridBtn: { width: '48%', paddingVertical: 10, backgroundColor: '#27272a', alignItems: 'center', borderRadius: 8, borderWidth: 1, borderColor: '#3f3f46' },
-  gridBtnActive: { backgroundColor: '#6A1B29', borderColor: '#8E2437' },
-  gridBtnText: { color: '#ffffff', fontSize: 12, fontWeight: '600' },
-  gridBtnTextActive: { color: '#ffffff', fontWeight: 'bold' },
   saveBtn: { backgroundColor: '#6A1B29', padding: 12, borderRadius: 8, alignItems: 'center' },
   saveBtnText: { color: '#ffffff', fontWeight: 'bold', fontSize: 14 },
   creditAmount: { color: '#f87171', fontSize: 13, fontWeight: 'bold', marginTop: 2 },
