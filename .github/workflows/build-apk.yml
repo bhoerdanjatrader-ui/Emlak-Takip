@@ -25,8 +25,9 @@ jobs:
       - name: Install dependencies with Yarn
         run: yarn install --no-lockfile
 
-      - name: Build APK Release
+      - name: Generate Android Folder and Build APK
         run: |
+          npx expo prebuild --platform android --clean
           cd android
           chmod +x gradlew
           ./gradlew assembleRelease
