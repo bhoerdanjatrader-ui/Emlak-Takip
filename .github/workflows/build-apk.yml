@@ -3,12 +3,10 @@ name: Android Build
 on:
   push:
     branches: [ main, master ]
-  workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -16,26 +14,24 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20.x
+          node-version: 18
+          cache: 'npm'
 
       - name: Setup Java
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
-          java-version: '17'
+          java-version: 17
+
+      - name: Setup Expo
+        uses: expo/expo-github-action@v8
+        with:
+          expo-version: latest
 
       - name: Install dependencies
-        run: yarn install --no-lockfile
+        run: npm install
 
-      - name: Generate Native Android Project
-        run: npx expo prebuild --platform android --clean
-
-      - name: Build APK (Release)
-        working-directory: ./android
-        run: ./gradlew assembleRelease
-
-      - name: Upload APK Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: patron-apk
-          path: android/app/build/outputs/apk/release/app-release.apk
+      - name: Run Prebuild & Build
+        run: |
+          npx expo prebuild --platform android --clean
+          cd android && ./gradlew assembleRelease
