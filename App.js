@@ -450,19 +450,19 @@ export default function App() {
               <TextInput style={dynStyles.input} placeholder="Portföy Başlığı" placeholderTextColor={isDark ? '#9ca3af' : '#6b7280'} value={pBaslik} onChangeText={setPBaslik} />
               
               <Text style={dynStyles.labelSub}>Kategori:</Text>
-              <View style={styles.formGridContainer}>
+              <View style={styles.gridSelectorRow}>
                 {['Konut', 'Arsa', 'İş Yeri', 'Zeytinlik/Tarla'].map(cat => (
-                  <TouchableOpacity key={cat} onPress={() => setPCategory(cat)} style={[dynStyles.formGridBtn, pCategory === cat && dynStyles.formGridBtnActive]}>
-                    <Text style={[dynStyles.formGridBtnText, pCategory === cat && dynStyles.formGridBtnTextActive]}>{cat}</Text>
+                  <TouchableOpacity key={cat} onPress={() => setPCategory(cat)} style={[dynStyles.gridBtnCol, pCategory === cat && dynStyles.gridBtnColActive]}>
+                    <Text style={[dynStyles.gridBtnTextCol, pCategory === cat && dynStyles.gridBtnTextColActive]} numberOfLines={1}>{cat}</Text>
                   </TouchableOpacity>
                 ))}
               </View>
 
               <Text style={dynStyles.labelSub}>İşlem Tipi:</Text>
-              <View style={styles.formGridContainer}>
+              <View style={styles.gridSelectorRow}>
                 {['Satılık', 'Kiralık', 'Kat Karşılığı'].map(st => (
-                  <TouchableOpacity key={st} onPress={() => setPTip(st)} style={[dynStyles.formGridBtn, pTip === st && dynStyles.formGridBtnActive]}>
-                    <Text style={[dynStyles.formGridBtnText, pTip === st && dynStyles.formGridBtnTextActive]}>{st}</Text>
+                  <TouchableOpacity key={st} onPress={() => setPTip(st)} style={[dynStyles.gridBtnCol3, pTip === st && dynStyles.gridBtnColActive]}>
+                    <Text style={[dynStyles.gridBtnTextCol, pTip === st && dynStyles.gridBtnTextColActive]} numberOfLines={1}>{st}</Text>
                   </TouchableOpacity>
                 ))}
               </View>
@@ -515,7 +515,7 @@ export default function App() {
                 <View key={p.id} style={dynStyles.listItem}>
                   <View style={{flex: 1}}>
                     <View style={styles.listHeader}>
-                      <Text style={dynStyles.listTitle}>{p.baslik}</Text>
+                      <Text style={styles.listTitle}>{p.baslik}</Text>
                       <View style={{flexDirection: 'row', gap: 4}}>
                         <Text style={styles.listBadge}>{p.category || 'Konut'}</Text>
                         <Text style={styles.listBadgeTip}>{p.tip}</Text>
@@ -545,19 +545,19 @@ export default function App() {
               <TextInput style={dynStyles.input} placeholder="Müşteri Adı" placeholderTextColor={isDark ? '#9ca3af' : '#6b7280'} value={tMusteri} onChangeText={setTMusteri} />
               
               <Text style={dynStyles.labelSub}>Kategori:</Text>
-              <View style={styles.formGridContainer}>
+              <View style={styles.gridSelectorRow}>
                 {['Konut', 'Arsa', 'İş Yeri', 'Zeytinlik/Tarla'].map(cat => (
-                  <TouchableOpacity key={cat} onPress={() => setTCategory(cat)} style={[dynStyles.formGridBtn, tCategory === cat && dynStyles.formGridBtnActive]}>
-                    <Text style={[dynStyles.formGridBtnText, tCategory === cat && dynStyles.formGridBtnTextActive]}>{cat}</Text>
+                  <TouchableOpacity key={cat} onPress={() => setTCategory(cat)} style={[dynStyles.gridBtnCol, tCategory === cat && dynStyles.gridBtnColActive]}>
+                    <Text style={[dynStyles.gridBtnTextCol, tCategory === cat && dynStyles.gridBtnTextColActive]} numberOfLines={1}>{cat}</Text>
                   </TouchableOpacity>
                 ))}
               </View>
 
               <Text style={dynStyles.labelSub}>İşlem Tipi:</Text>
-              <View style={styles.formGridContainer}>
+              <View style={styles.gridSelectorRow}>
                 {['Satılık', 'Kiralık', 'Kat Karşılığı'].map(st => (
-                  <TouchableOpacity key={st} onPress={() => setTTip(st)} style={[dynStyles.formGridBtn, tTip === st && dynStyles.formGridBtnActive]}>
-                    <Text style={[dynStyles.formGridBtnText, tTip === st && dynStyles.formGridBtnTextActive]}>{st}</Text>
+                  <TouchableOpacity key={st} onPress={() => setTTip(st)} style={[dynStyles.gridBtnCol3, tTip === st && dynStyles.gridBtnColActive]}>
+                    <Text style={[dynStyles.gridBtnTextCol, tTip === st && dynStyles.gridBtnTextColActive]} numberOfLines={1}>{st}</Text>
                   </TouchableOpacity>
                 ))}
               </View>
@@ -617,7 +617,7 @@ export default function App() {
                       </View>
                     </View>
                     <Text style={styles.listSub}>🔍 {talep.aranan} | 📍 {talep.konum}</Text>
-                    <Text style={styles.listDesc}>Max Bütçe: {Number(talep.maxFiyat || 0).toLocaleString()} TL</Text>
+                    <Text style={dynStyles.listDesc}>Max Bütçe: {Number(talep.maxFiyat || 0).toLocaleString()} TL</Text>
                   </View>
                   <View style={styles.actionColumn}>
                     <TouchableOpacity style={styles.iconBtnEdit} onPress={() => talepDuzenleBaslat(talep)}><Text style={styles.iconText}>✏️</Text></TouchableOpacity>
@@ -738,12 +738,12 @@ export default function App() {
 
             <View style={dynStyles.formCard}>
               <Text style={dynStyles.cardTitle}>Gelir / Gider Ekle</Text>
-              <View style={dynStyles.formGridContainer}>
-                <TouchableOpacity style={[dynStyles.formGridBtn, islemTipi === 'gelir' && dynStyles.formGridBtnActive]} onPress={() => setIslemTipi('gelir')}>
-                  <Text style={[dynStyles.formGridBtnText, islemTipi === 'gelir' && dynStyles.formGridBtnTextActive]}>Gelir</Text>
+              <View style={styles.gridSelectorRow}>
+                <TouchableOpacity style={[styles.gridBtnCol2, islemTipi === 'gelir' && styles.gridBtnColActive]} onPress={() => setIslemTipi('gelir')}>
+                  <Text style={[styles.gridBtnTextCol, islemTipi === 'gelir' && styles.gridBtnTextColActive]}>Gelir</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={[dynStyles.formGridBtn, islemTipi === 'gider' && dynStyles.formGridBtnActive]} onPress={() => setIslemTipi('gider')}>
-                  <Text style={[dynStyles.formGridBtnText, islemTipi === 'gider' && dynStyles.formGridBtnTextActive]}>Gider</Text>
+                <TouchableOpacity style={[styles.gridBtnCol2, islemTipi === 'gider' && styles.gridBtnColActive]} onPress={() => setIslemTipi('gider')}>
+                  <Text style={[styles.gridBtnTextCol, islemTipi === 'gider' && styles.gridBtnTextColActive]}>Gider</Text>
                 </TouchableOpacity>
               </View>
               <TextInput style={dynStyles.input} placeholder="Tutar (TL)" placeholderTextColor={isDark ? '#9ca3af' : '#6b7280'} keyboardType="default" value={tutar} onChangeText={setTutar} />
@@ -784,12 +784,12 @@ export default function App() {
             <View style={dynStyles.formCard}>
               <Text style={dynStyles.cardTitle}>🎨 Görünüm & Tema</Text>
               <Text style={dynStyles.labelSub}>Uygulama Tema Modu:</Text>
-              <View style={dynStyles.formGridContainer}>
-                <TouchableOpacity style={[dynStyles.formGridBtn, isDark && dynStyles.formGridBtnActive]} onPress={() => temaDegistir('dark')}>
-                  <Text style={[dynStyles.formGridBtnText, isDark && dynStyles.formGridBtnTextActive]}>Karanlık Mod 🌙</Text>
+              <View style={styles.gridSelectorRow}>
+                <TouchableOpacity style={[styles.gridBtnCol2, isDark && styles.gridBtnColActive]} onPress={() => temaDegistir('dark')}>
+                  <Text style={[styles.gridBtnTextCol, isDark && styles.gridBtnTextColActive]}>Karanlık Mod 🌙</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={[dynStyles.formGridBtn, !isDark && dynStyles.formGridBtnActive]} onPress={() => temaDegistir('light')}>
-                  <Text style={[dynStyles.formGridBtnText, !isDark && dynStyles.formGridBtnTextActive]}>Aydınlık Mod ☀️</Text>
+                <TouchableOpacity style={[styles.gridBtnCol2, !isDark && styles.gridBtnColActive]} onPress={() => temaDegistir('light')}>
+                  <Text style={[styles.gridBtnTextCol, !isDark && styles.gridBtnTextColActive]}>Aydınlık Mod ☀️</Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -871,11 +871,13 @@ const getDynamicStyles = (isDark) => StyleSheet.create({
   subChipActive: { backgroundColor: '#6A1B29', borderColor: '#6A1B29' },
   subChipText: { color: isDark ? '#e4e4e7' : '#374151', fontSize: 11 },
   subChipTextActive: { color: '#ffffff', fontWeight: 'bold' },
-  formGridContainer: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginBottom: 12 },
-  formGridBtn: { width: '48%', paddingVertical: 10, backgroundColor: isDark ? '#27272a' : '#f9fafb', alignItems: 'center', borderRadius: 8, borderWidth: 1, borderColor: isDark ? '#3f3f46' : '#d1d5db' },
-  formGridBtnActive: { backgroundColor: '#6A1B29', borderColor: '#8E2437' },
-  formGridBtnText: { color: isDark ? '#f4f4f5' : '#1f2937', fontSize: 12, fontWeight: '600' },
-  formGridBtnTextActive: { color: '#ffffff', fontWeight: 'bold' }
+  gridSelectorRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginBottom: 12 },
+  gridBtnCol: { width: '48%', paddingVertical: 10, backgroundColor: isDark ? '#27272a' : '#f9fafb', alignItems: 'center', borderRadius: 8, borderWidth: 1, borderColor: isDark ? '#3f3f46' : '#d1d5db' },
+  gridBtnCol3: { width: '31.5%', paddingVertical: 10, backgroundColor: isDark ? '#27272a' : '#f9fafb', alignItems: 'center', borderRadius: 8, borderWidth: 1, borderColor: isDark ? '#3f3f46' : '#d1d5db' },
+  gridBtnCol2: { width: '48%', paddingVertical: 10, backgroundColor: isDark ? '#27272a' : '#f9fafb', alignItems: 'center', borderRadius: 8, borderWidth: 1, borderColor: isDark ? '#3f3f46' : '#d1d5db' },
+  gridBtnColActive: { backgroundColor: '#6A1B29', borderColor: '#8E2437' },
+  gridBtnTextCol: { color: isDark ? '#f4f4f5' : '#1f2937', fontSize: 12, fontWeight: '600' },
+  gridBtnTextColActive: { color: '#ffffff', fontWeight: 'bold' }
 });
 
 const styles = StyleSheet.create({
