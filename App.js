@@ -450,19 +450,19 @@ export default function App() {
               <TextInput style={dynStyles.input} placeholder="Portföy Başlığı" placeholderTextColor={isDark ? '#9ca3af' : '#6b7280'} value={pBaslik} onChangeText={setPBaslik} />
               
               <Text style={dynStyles.labelSub}>Kategori:</Text>
-              <View style={styles.gridSelectorRow}>
+              <View style={dynStyles.btnGrid}>
                 {['Konut', 'Arsa', 'İş Yeri', 'Zeytinlik/Tarla'].map(cat => (
-                  <TouchableOpacity key={cat} onPress={() => setPCategory(cat)} style={[dynStyles.gridBtnCol, pCategory === cat && dynStyles.gridBtnColActive]}>
-                    <Text style={[dynStyles.gridBtnTextCol, pCategory === cat && dynStyles.gridBtnTextColActive]} numberOfLines={1}>{cat}</Text>
+                  <TouchableOpacity key={cat} onPress={() => setPCategory(cat)} style={[dynStyles.gridItem2, pCategory === cat && dynStyles.gridItemActive]}>
+                    <Text style={[dynStyles.gridText, pCategory === cat && dynStyles.gridTextActive]} numberOfLines={1}>{cat}</Text>
                   </TouchableOpacity>
                 ))}
               </View>
 
               <Text style={dynStyles.labelSub}>İşlem Tipi:</Text>
-              <View style={styles.gridSelectorRow}>
+              <View style={dynStyles.btnGrid}>
                 {['Satılık', 'Kiralık', 'Kat Karşılığı'].map(st => (
-                  <TouchableOpacity key={st} onPress={() => setPTip(st)} style={[dynStyles.gridBtnCol3, pTip === st && dynStyles.gridBtnColActive]}>
-                    <Text style={[dynStyles.gridBtnTextCol, pTip === st && dynStyles.gridBtnTextColActive]} numberOfLines={1}>{st}</Text>
+                  <TouchableOpacity key={st} onPress={() => setPTip(st)} style={[dynStyles.gridItem3, pTip === st && dynStyles.gridItemActive]}>
+                    <Text style={[dynStyles.gridText, pTip === st && dynStyles.gridTextActive]} numberOfLines={1}>{st}</Text>
                   </TouchableOpacity>
                 ))}
               </View>
@@ -493,7 +493,7 @@ export default function App() {
               <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chipRow}>
                 {['TÜMÜ', 'Konut', 'Arsa', 'İş Yeri', 'Zeytinlik/Tarla'].map(cat => (
                   <TouchableOpacity key={cat} onPress={() => setPSelectedCategory(cat)} style={[dynStyles.chip, pSelectedCategory === cat && dynStyles.chipActive]}>
-                    <Text style={[dynStyles.chipText, pSelectedCategory === cat && dynStyles.chipTextActive]}>{cat}</Text>
+                    <Text style={[dynStyles.chipText, pSelectedCategory === cat && dynStyles.chipTextActive]} numberOfLines={1}>{cat}</Text>
                   </TouchableOpacity>
                 ))}
               </ScrollView>
@@ -501,7 +501,7 @@ export default function App() {
               <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chipRow}>
                 {['TÜMÜ', 'Satılık', 'Kiralık', 'Kat Karşılığı'].map(st => (
                   <TouchableOpacity key={st} onPress={() => setPSelectedStatus(st)} style={[dynStyles.subChip, pSelectedStatus === st && dynStyles.subChipActive]}>
-                    <Text style={[dynStyles.subChipText, pSelectedStatus === st && dynStyles.subChipTextActive]}>{st}</Text>
+                    <Text style={[dynStyles.subChipText, pSelectedStatus === st && dynStyles.subChipTextActive]} numberOfLines={1}>{st}</Text>
                   </TouchableOpacity>
                 ))}
               </ScrollView>
@@ -545,19 +545,19 @@ export default function App() {
               <TextInput style={dynStyles.input} placeholder="Müşteri Adı" placeholderTextColor={isDark ? '#9ca3af' : '#6b7280'} value={tMusteri} onChangeText={setTMusteri} />
               
               <Text style={dynStyles.labelSub}>Kategori:</Text>
-              <View style={styles.gridSelectorRow}>
+              <View style={dynStyles.btnGrid}>
                 {['Konut', 'Arsa', 'İş Yeri', 'Zeytinlik/Tarla'].map(cat => (
-                  <TouchableOpacity key={cat} onPress={() => setTCategory(cat)} style={[dynStyles.gridBtnCol, tCategory === cat && dynStyles.gridBtnColActive]}>
-                    <Text style={[dynStyles.gridBtnTextCol, tCategory === cat && dynStyles.gridBtnTextColActive]} numberOfLines={1}>{cat}</Text>
+                  <TouchableOpacity key={cat} onPress={() => setTCategory(cat)} style={[dynStyles.gridItem2, tCategory === cat && dynStyles.gridItemActive]}>
+                    <Text style={[dynStyles.gridText, tCategory === cat && dynStyles.gridTextActive]} numberOfLines={1}>{cat}</Text>
                   </TouchableOpacity>
                 ))}
               </View>
 
               <Text style={dynStyles.labelSub}>İşlem Tipi:</Text>
-              <View style={styles.gridSelectorRow}>
+              <View style={dynStyles.btnGrid}>
                 {['Satılık', 'Kiralık', 'Kat Karşılığı'].map(st => (
-                  <TouchableOpacity key={st} onPress={() => setTTip(st)} style={[dynStyles.gridBtnCol3, tTip === st && dynStyles.gridBtnColActive]}>
-                    <Text style={[dynStyles.gridBtnTextCol, tTip === st && dynStyles.gridBtnTextColActive]} numberOfLines={1}>{st}</Text>
+                  <TouchableOpacity key={st} onPress={() => setTTip(st)} style={[dynStyles.gridItem3, tTip === st && dynStyles.gridItemActive]}>
+                    <Text style={[dynStyles.gridText, tTip === st && dynStyles.gridTextActive]} numberOfLines={1}>{st}</Text>
                   </TouchableOpacity>
                 ))}
               </View>
@@ -588,7 +588,7 @@ export default function App() {
               <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chipRow}>
                 {['TÜMÜ', 'Konut', 'Arsa', 'İş Yeri', 'Zeytinlik/Tarla'].map(cat => (
                   <TouchableOpacity key={cat} onPress={() => setTSelectedCategory(cat)} style={[dynStyles.chip, tSelectedCategory === cat && dynStyles.chipActive]}>
-                    <Text style={[dynStyles.chipText, tSelectedCategory === cat && dynStyles.chipTextActive]}>{cat}</Text>
+                    <Text style={[dynStyles.chipText, tSelectedCategory === cat && dynStyles.chipTextActive]} numberOfLines={1}>{cat}</Text>
                   </TouchableOpacity>
                 ))}
               </ScrollView>
@@ -596,7 +596,7 @@ export default function App() {
               <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chipRow}>
                 {['TÜMÜ', 'Satılık', 'Kiralık', 'Kat Karşılığı'].map(st => (
                   <TouchableOpacity key={st} onPress={() => setTSelectedStatus(st)} style={[dynStyles.subChip, tSelectedStatus === st && dynStyles.subChipActive]}>
-                    <Text style={[dynStyles.subChipText, tSelectedStatus === st && dynStyles.subChipTextActive]}>{st}</Text>
+                    <Text style={[dynStyles.subChipText, tSelectedStatus === st && dynStyles.subChipTextActive]} numberOfLines={1}>{st}</Text>
                   </TouchableOpacity>
                 ))}
               </ScrollView>
@@ -616,7 +616,7 @@ export default function App() {
                         <Text style={styles.listBadgeTip}>{talep.tip}</Text>
                       </View>
                     </View>
-                    <Text style={styles.listSub}>🔍 {talep.aranan} | 📍 {talep.konum}</Text>
+                    <Text style={dynStyles.listSub}>🔍 {talep.aranan} | 📍 {talep.konum}</Text>
                     <Text style={dynStyles.listDesc}>Max Bütçe: {Number(talep.maxFiyat || 0).toLocaleString()} TL</Text>
                   </View>
                   <View style={styles.actionColumn}>
@@ -738,12 +738,12 @@ export default function App() {
 
             <View style={dynStyles.formCard}>
               <Text style={dynStyles.cardTitle}>Gelir / Gider Ekle</Text>
-              <View style={styles.gridSelectorRow}>
-                <TouchableOpacity style={[styles.gridBtnCol2, islemTipi === 'gelir' && styles.gridBtnColActive]} onPress={() => setIslemTipi('gelir')}>
-                  <Text style={[styles.gridBtnTextCol, islemTipi === 'gelir' && styles.gridBtnTextColActive]}>Gelir</Text>
+              <View style={dynStyles.btnGrid}>
+                <TouchableOpacity style={[dynStyles.gridItem2, islemTipi === 'gelir' && dynStyles.gridItemActive]} onPress={() => setIslemTipi('gelir')}>
+                  <Text style={[dynStyles.gridText, islemTipi === 'gelir' && dynStyles.gridTextActive]}>Gelir</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={[styles.gridBtnCol2, islemTipi === 'gider' && styles.gridBtnColActive]} onPress={() => setIslemTipi('gider')}>
-                  <Text style={[styles.gridBtnTextCol, islemTipi === 'gider' && styles.gridBtnTextColActive]}>Gider</Text>
+                <TouchableOpacity style={[dynStyles.gridItem2, islemTipi === 'gider' && dynStyles.gridItemActive]} onPress={() => setIslemTipi('gider')}>
+                  <Text style={[dynStyles.gridText, islemTipi === 'gider' && dynStyles.gridTextActive]}>Gider</Text>
                 </TouchableOpacity>
               </View>
               <TextInput style={dynStyles.input} placeholder="Tutar (TL)" placeholderTextColor={isDark ? '#9ca3af' : '#6b7280'} keyboardType="default" value={tutar} onChangeText={setTutar} />
@@ -784,12 +784,12 @@ export default function App() {
             <View style={dynStyles.formCard}>
               <Text style={dynStyles.cardTitle}>🎨 Görünüm & Tema</Text>
               <Text style={dynStyles.labelSub}>Uygulama Tema Modu:</Text>
-              <View style={styles.gridSelectorRow}>
-                <TouchableOpacity style={[styles.gridBtnCol2, isDark && styles.gridBtnColActive]} onPress={() => temaDegistir('dark')}>
-                  <Text style={[styles.gridBtnTextCol, isDark && styles.gridBtnTextColActive]}>Karanlık Mod 🌙</Text>
+              <View style={dynStyles.btnGrid}>
+                <TouchableOpacity style={[dynStyles.gridItem2, isDark && dynStyles.gridItemActive]} onPress={() => temaDegistir('dark')}>
+                  <Text style={[dynStyles.gridText, isDark && dynStyles.gridTextActive]}>Karanlık Mod 🌙</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={[styles.gridBtnCol2, !isDark && styles.gridBtnColActive]} onPress={() => temaDegistir('light')}>
-                  <Text style={[styles.gridBtnTextCol, !isDark && styles.gridBtnTextColActive]}>Aydınlık Mod ☀️</Text>
+                <TouchableOpacity style={[dynStyles.gridItem2, !isDark && dynStyles.gridItemActive]} onPress={() => temaDegistir('light')}>
+                  <Text style={[dynStyles.gridText, !isDark && dynStyles.gridTextActive]}>Aydınlık Mod ☀️</Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -871,13 +871,12 @@ const getDynamicStyles = (isDark) => StyleSheet.create({
   subChipActive: { backgroundColor: '#6A1B29', borderColor: '#6A1B29' },
   subChipText: { color: isDark ? '#e4e4e7' : '#374151', fontSize: 11 },
   subChipTextActive: { color: '#ffffff', fontWeight: 'bold' },
-  gridSelectorRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginBottom: 12 },
-  gridBtnCol: { width: '48%', paddingVertical: 10, backgroundColor: isDark ? '#27272a' : '#f9fafb', alignItems: 'center', borderRadius: 8, borderWidth: 1, borderColor: isDark ? '#3f3f46' : '#d1d5db' },
-  gridBtnCol3: { width: '31.5%', paddingVertical: 10, backgroundColor: isDark ? '#27272a' : '#f9fafb', alignItems: 'center', borderRadius: 8, borderWidth: 1, borderColor: isDark ? '#3f3f46' : '#d1d5db' },
-  gridBtnCol2: { width: '48%', paddingVertical: 10, backgroundColor: isDark ? '#27272a' : '#f9fafb', alignItems: 'center', borderRadius: 8, borderWidth: 1, borderColor: isDark ? '#3f3f46' : '#d1d5db' },
-  gridBtnColActive: { backgroundColor: '#6A1B29', borderColor: '#8E2437' },
-  gridBtnTextCol: { color: isDark ? '#f4f4f5' : '#1f2937', fontSize: 12, fontWeight: '600' },
-  gridBtnTextColActive: { color: '#ffffff', fontWeight: 'bold' }
+  btnGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginBottom: 12 },
+  gridItem2: { width: '48%', paddingVertical: 10, backgroundColor: isDark ? '#27272a' : '#f9fafb', alignItems: 'center', borderRadius: 8, borderWidth: 1, borderColor: isDark ? '#3f3f46' : '#d1d5db' },
+  gridItem3: { width: '31.5%', paddingVertical: 10, backgroundColor: isDark ? '#27272a' : '#f9fafb', alignItems: 'center', borderRadius: 8, borderWidth: 1, borderColor: isDark ? '#3f3f46' : '#d1d5db' },
+  gridItemActive: { backgroundColor: '#6A1B29', borderColor: '#8E2437' },
+  gridText: { color: isDark ? '#f4f4f5' : '#1f2937', fontSize: 12, fontWeight: '600' },
+  gridTextActive: { color: '#ffffff', fontWeight: 'bold' }
 });
 
 const styles = StyleSheet.create({
