@@ -20,11 +20,7 @@ const normalizeText = (text) => {
 
 export default function App() {
   const [isUnlocked, setIsUnlocked] = useState(false);
-  const [userEmail, setUserEmail] = useState('');
-  const [emailInput, setEmailInput] = useState('');
-  const [sifreInput, setSifreInput] = useState('');
-  const [isKayitModu, setIsKayitModu] = useState(false);
-  
+  const [userEmail, setUserEmail] = useState('toco.patron@toco.com');
   const [girilenPin, setGirilenPin] = useState('');
   const [kayitliPin, setKayitliPin] = useState('1234');
   const [islemModu, setIslemModu] = useState('giris');
@@ -104,9 +100,7 @@ export default function App() {
         if (savedPin) setKayitliPin(savedPin);
         if (savedTheme) setTheme(savedTheme);
 
-        if (kayitliEmail) {
-          parmakIziIleGiris();
-        }
+        parmakIziIleGiris();
       } catch (e) {
         console.log('Veri yükleme hatası', e);
       }
@@ -130,84 +124,6 @@ export default function App() {
     } catch (e) {
       console.log('Biyometrik hata', e);
     }
-  };
-
-  const epostaIleIslemYap = async () => {
-    if (!emailInput || !emailInput.includes('@') || !sifreInput) {
-      return Alert.alert('Hata', 'Lütfen geçerli bir e-posta ve şifre giriniz.');
-    }
-
-    // İnternet bağlantı simülasyonu / kontrolü (Gerçek ağ isteği entegrasyonu için ayrılmıştır)
-    try {
-      const hedefKey = `@toco_pass_${emailInput.trim().toLowerCase()}`;
-      
-      if (isKayitModu) {
-        await AsyncStorage.setItem(hedefKey, sifreInput);
-        await AsyncStorage.setItem('@toco_user_email', emailInput.trim());
-        setUserEmail(emailInput.trim());
-        setIsUnlocked(true);
-        Alert.alert('Başarılı', 'Kayıt oluşturuldu ve giriş yapıldı.');
-      } else {
-        const kayitliSifre = await AsyncStorage.getItem(hedefKey);
-        // Eğer daha önce bu cihazda kayıtlı değilse ilk girişte direkt kabul et veya şifreyi doğrula
-        if (kayitliSifre && kayitliSifre !== sifreInput) {
-          return Alert.alert('Hata', 'Hatalı şifre girdiniz!');
-        }
-        await AsyncStorage.setItem('@toco_user_email', emailInput.trim());
-        setUserEmail(emailInput.trim());
-        setIsUnlocked(true);
-      }
-    } catch (e) {
-      Alert.alert('Bağlantı Hatası', 'İşlem gerçekleştirilemedi.');
-    }
-  };
-
-  const googleIleDevamEt = () => {
-    // Sabit otomatik mail yerine kullanıcıya kendi Google mailini girmesi için prompt/uyarı verilir
-    Alert.prompt 
-      ? Alert.prompt(
-          'Google ile Giriş',
-          'Lütfen Google e-posta adresinizi girin:',
-          [
-            { text: 'Vazgeç', style: 'cancel' },
-            {
-              text: 'Giriş Yap',
-              onPress: async (girilenMail) => {
-                if (girilenMail && girilenMail.includes('@')) {
-                  setUserEmail(girilenMail.trim());
-                  await AsyncStorage.setItem('@toco_user_email', girilenMail.trim());
-                  setIsUnlocked(true);
-                } else {
-                  Alert.alert('Hata', 'Geçerli bir e-posta girmelisiniz.');
-                }
-              }
-            }
-          ],
-          'plain-text'
-        )
-      : (() => {
-          // Prompt desteklemeyen cihazlar için alternatif
-          const fallbackMail = emailInput.includes('@') ? emailInput : 'kullanici@gmail.com';
-          setUserEmail(fallbackMail);
-          AsyncStorage.setItem('@toco_user_email', fallbackMail);
-          setIsUnlocked(true);
-        })();
-  };
-
-  const oturumuKapat = async () => {
-    Alert.alert('Çıkış Yap', 'Hesabınızdan çıkış yapmak istiyor musunuz?', [
-      { text: 'Vazgeç', style: 'cancel' },
-      { 
-        text: 'Evet, Çıkış Yap', 
-        onPress: async () => {
-          setUserEmail('');
-          setIsUnlocked(false);
-          setEmailInput('');
-          setSifreInput('');
-          await AsyncStorage.removeItem('@toco_user_email');
-        } 
-      }
-    ]);
   };
 
   useEffect(() => {
@@ -459,67 +375,6 @@ export default function App() {
 
   const dynStyles = getDynamicStyles(isDark);
 
-  if (!userEmail) {
-    return (
-      <SafeAreaView style={dynStyles.lockContainer}>
-        <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} backgroundColor={isDark ? '#121214' : '#f3f4f6'} />
-        <View style={dynStyles.lockCard}>
-          <View style={styles.titleBox}>
-            <Text style={styles.headerTitle}>PATRON</Text>
-          </View>
-          <Text style={dynStyles.lockSubText}>TOCO Ticaret Ofisi Bulut Üyelik</Text>
-
-          <TouchableOpacity style={styles.googleBtn} onPress={googleIleDevamEt}>
-            <Text style={styles.googleBtnText}>🔵 Google Hesabı Seçerek Devam Et</Text>
-          </TouchableOpacity>
-
-          <View style={styles.dividerRow}>
-            <View style={dynStyles.line} />
-            <Text style={dynStyles.orText}>VEYA MAİL / ŞİFRE</Text>
-            <View style={dynStyles.line} />
-          </View>
-
-          <TextInput
-            style={dynStyles.lockInput}
-            placeholder="E-posta Adresiniz"
-            placeholderTextColor={isDark ? '#9ca3af' : '#6b7280'}
-            keyboardType="email-address"
-            autoCapitalize="none"
-            value={emailInput}
-            onChangeText={setEmailInput}
-          />
-          <TextInput
-            style={dynStyles.lockInput}
-            placeholder="Şifreniz"
-            placeholderTextColor={isDark ? '#9ca3af' : '#6b7280'}
-            secureTextEntry
-            value={sifreInput}
-            onChangeText={setSifreInput}
-          />
-
-          <View style={{flexDirection: 'row', gap: 10, width: '100%', marginBottom: 10}}>
-            <TouchableOpacity 
-              style={[styles.saveBtn, {flex: 1, backgroundColor: !isKayitModu ? '#6A1B29' : '#3f3f46'}]} 
-              onPress={() => setIsKayitModu(false)}
-            >
-              <Text style={styles.saveBtnText}>Giriş Yap</Text>
-            </TouchableOpacity>
-            <TouchableOpacity 
-              style={[styles.saveBtn, {flex: 1, backgroundColor: isKayitModu ? '#6A1B29' : '#3f3f46'}]} 
-              onPress={() => setIsKayitModu(true)}
-            >
-              <Text style={styles.saveBtnText}>Kayıt Ol</Text>
-            </TouchableOpacity>
-          </View>
-
-          <TouchableOpacity style={[styles.saveBtn, {width: '100%'}]} onPress={epostaIleIslemYap}>
-            <Text style={styles.saveBtnText}>{isKayitModu ? 'Hesap Oluştur' : 'Oturum Aç'}</Text>
-          </TouchableOpacity>
-        </View>
-      </SafeAreaView>
-    );
-  }
-
   if (!isUnlocked) {
     return (
       <SafeAreaView style={dynStyles.lockContainer}>
@@ -528,7 +383,7 @@ export default function App() {
           <View style={styles.titleBox}>
             <Text style={styles.headerTitle}>PATRON</Text>
           </View>
-          <Text style={dynStyles.lockSubText}>Oturum: {userEmail}</Text>
+          <Text style={dynStyles.lockSubText}>TOCO Ticaret Ofisi Güvenli Giriş</Text>
 
           <TouchableOpacity style={dynStyles.biometricBtn} onPress={parmakIziIleGiris}>
             <Text style={dynStyles.biometricText}>👆 Parmak İzi ile Aç</Text>
@@ -536,7 +391,7 @@ export default function App() {
 
           <View style={styles.dividerRow}>
             <View style={dynStyles.line} />
-            <Text style={dynStyles.orText}>VEYA ŞİFRE GİRİN</Text>
+            <Text style={dynStyles.orText}>VEYA PIN ŞİFRE GİRİN</Text>
             <View style={dynStyles.line} />
           </View>
 
@@ -551,10 +406,6 @@ export default function App() {
           />
           <TouchableOpacity style={styles.saveBtn} onPress={pinleGirisYap}>
             <Text style={styles.saveBtnText}>Giriş Yap</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity onPress={oturumuKapat} style={{marginTop: 15}}>
-            <Text style={{color: '#f87171', fontSize: 12, fontWeight: 'bold'}}>Farklı bir hesap ile giriş yap</Text>
           </TouchableOpacity>
         </View>
       </SafeAreaView>
@@ -929,17 +780,8 @@ export default function App() {
 
         {activeTab === 'ayarlar' && (
           <View>
-            <Text style={dynStyles.sectionTitle}>⚙️ Hesap & Uygulama Ayarları</Text>
+            <Text style={dynStyles.sectionTitle}>⚙️ Uygulama Ayarları</Text>
             
-            <View style={dynStyles.formCard}>
-              <Text style={dynStyles.cardTitle}>👤 Oturum Açık Hesap</Text>
-              <Text style={dynStyles.labelSub}>Giriş Yapılan E-posta:</Text>
-              <Text style={[dynStyles.input, {color: '#34d399', fontWeight: 'bold'}]}>{userEmail}</Text>
-              <TouchableOpacity style={[styles.saveBtn, {backgroundColor: '#7f1d1d', marginTop: 8}]} onPress={oturumuKapat}>
-                <Text style={styles.saveBtnText}>Oturumu Kapat / Hesap Değiştir</Text>
-              </TouchableOpacity>
-            </View>
-
             <View style={dynStyles.formCard}>
               <Text style={dynStyles.cardTitle}>🎨 Görünüm & Tema</Text>
               <Text style={dynStyles.labelSub}>Uygulama Tema Modu:</Text>
@@ -1059,8 +901,6 @@ const styles = StyleSheet.create({
   summaryLabel: { color: '#e2e8f0', fontSize: 12, fontWeight: '600' },
   summaryVal: { color: '#ffffff', fontSize: 15, fontWeight: 'bold', marginTop: 4 },
   saveBtn: { backgroundColor: '#6A1B29', padding: 12, borderRadius: 8, alignItems: 'center' },
-  googleBtn: { backgroundColor: '#1d4ed8', padding: 12, borderRadius: 8, alignItems: 'center', width: '100%', marginBottom: 10 },
-  googleBtnText: { color: '#ffffff', fontWeight: 'bold', fontSize: 14 },
   saveBtnText: { color: '#ffffff', fontWeight: 'bold', fontSize: 14 },
   creditAmount: { color: '#f87171', fontSize: 13, fontWeight: 'bold', marginTop: 2 },
   creditDate: { color: '#fbbf24', fontSize: 12, marginTop: 2, fontWeight: '600' },
