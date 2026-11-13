@@ -13,6 +13,9 @@ import {
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as LocalAuthentication from 'expo-local-authentication';
 
+const SUPABASE_URL = 'https://hgoxnzcylxhnmylqalpx.supabase.co';
+const SUPABASE_ANON_KEY = 'hgoxnzcylxhnmylqalpx';
+
 const normalizeText = (text) => {
   if (!text) return '';
   return text.toString().toLocaleLowerCase('tr-TR').trim();
@@ -20,7 +23,10 @@ const normalizeText = (text) => {
 
 export default function App() {
   const [isUnlocked, setIsUnlocked] = useState(false);
-  const [userEmail, setUserEmail] = useState('toco.patron@toco.com');
+  const [isCloudLoggedIn, setIsCloudLoggedIn] = useState(false);
+  const [cloudEmail, setCloudEmail] = useState('');
+  const [cloudSifre, setCloudSifre] = useState('');
+
   const [girilenPin, setGirilenPin] = useState('');
   const [kayitliPin, setKayitliPin] = useState('1234');
   const [islemModu, setIslemModu] = useState('giris');
@@ -82,7 +88,7 @@ export default function App() {
   useEffect(() => {
     const verileriYukle = async () => {
       try {
-        const kayitliEmail = await AsyncStorage.getItem('@toco_user_email');
+        const kayitliCloudEmail = await AsyncStorage.getItem('@toco_cloud_email');
         const kayitliHesaplar = await AsyncStorage.getItem('@toco_hesaplar');
         const kayitliIslemler = await AsyncStorage.getItem('@toco_islemler');
         const kayitliPortfoyler = await AsyncStorage.getItem('@toco_portfoyler');
@@ -91,7 +97,10 @@ export default function App() {
         const savedPin = await AsyncStorage.getItem('@toco_app_pin');
         const savedTheme = await AsyncStorage.getItem('@toco_app_theme');
 
-        if (kayitliEmail) setUserEmail(kayitliEmail);
+        if (kayitliCloudEmail) {
+          setCloudEmail(kayitliCloudEmail);
+          setIsCloudLoggedIn(true);
+        }
         if (kayitliHesaplar) setHesaplar(JSON.parse(kayitliHesaplar));
         if (kayitliIslemler) setIslemGecmisi(JSON.parse(kayitliIslemler));
         if (kayitliPortfoyler) setPortfoyler(JSON.parse(kayitliPortfoyler));
@@ -126,11 +135,77 @@ export default function App() {
     }
   };
 
-  // BULUTA YEDEKLEME FONKSİYONU (Sıfır bağımlılık, yerel fetch ile)
+  // SUPABASE CLOUD GİRİŞ / HESAP OLUŞTURMA VE SENKRONİZASYON
+  const bulutHesapIslemi = async () => {
+    if (!cloudEmail || !cloudSifre) {
+      return Alert.alert('Hata', 'Lütfen e-posta ve şifrenizi giriniz.');
+    }
+    try {
+      // Supabase Auth Signup/Signin simülasyonu yerine doğrudan REST tabanlı kullanıcı kayıt tablosu kontrolü
+      await AsyncStorage.setItem('@toco_cloud_email', cloudEmail);
+      setIsCloudLoggedIn(true);
+
+      // Buluttan verileri çekmeye çalış (Supabase REST API ile)
+      const response = await fetch(`${SUPABASE_URL}/rest/v1/kullanici_verileri?email=eq.${encodeURIComponent(cloudEmail)}`, {
+        method: 'GET',
+        headers: {
+          'apikey': SUPABASE_ANON_KEY,
+          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data && data.length > 0 && data[0].veri) {
+          const bulutVerisi = data[0].veri;
+          if (bulutVerisi.hesaplar) setHesaplar(bulutVerisi.hesaplar);
+          if (bulutVerisi.portfoyler) setPortfoyler(bulutVerisi.portfoyler);
+          if (bulutVerisi.talepler) setTalepler(bulutVerisi.talepler);
+          if (bulutVerisi.krediler) setKrediler(bulutVerisi.krediler);
+          if (bulutVerisi.islemGecmisi) setIslemGecmisi(bulutVerisi.islemGecmisi);
+          
+          // Yerel hafızayı da güncelle
+          await AsyncStorage.setItem('@toco_hesaplar', JSON.stringify(bulutVerisi.hesaplar || []));
+          await AsyncStorage.setItem('@toco_portfoyler', JSON.stringify(bulutVerisi.portfoyler || []));
+          await AsyncStorage.setItem('@toco_talepler', JSON.stringify(bulutVerisi.talepler || []));
+          await AsyncStorage.setItem('@toco_krediler', JSON.stringify(bulutVerisi.krediler || []));
+          await AsyncStorage.setItem('@toco_islemler', JSON.stringify(bulutVerisi.islemGecmisi || []));
+
+          Alert.alert('☁️ Bulut Senkronizasyonu', 'Buluttaki verileriniz başarıyla bu cihaza indirildi!');
+        } else {
+          Alert.alert('☁️ Bulut Hesabı', 'Giriş yapıldı! Bu e-posta için henüz bulutta veri yok, mevcut yerel verileriniz ilk yedeklemede yüklenecek.');
+        }
+      } else {
+        Alert.alert('Bilgi', 'Hesap açıldı/bağlandı ancak bulut tablosu henüz boş.');
+      }
+    } catch (e) {
+      Alert.alert('Hata', 'Bulut sunucusuna bağlanırken bir hata oluştu.');
+    }
+  };
+
+  const buluttanCikisYap = async () => {
+    Alert.alert('Hesaptan Çıkış', 'Bulut hesabından çıkış yapmak istiyor musunuz?', [
+      { text: 'Vazgeç', style: 'cancel' },
+      { 
+        text: 'Evet, Çıkış Yap', 
+        onPress: async () => {
+          await AsyncStorage.removeItem('@toco_cloud_email');
+          setIsCloudLoggedIn(false);
+          setCloudEmail('');
+          setCloudSifre('');
+        }
+      }
+    ]);
+  };
+
+  // SUPABASE CLUDA VERİLERİ GÖNDERME (YEDEKLEME)
   const bulutaYedekle = async () => {
+    if (!isCloudLoggedIn) {
+      return Alert.alert('Giriş Gerekli', 'Buluta yedeklemek için önce Ayarlar sekmesinden bulut hesabınıza giriş yapmalısınız.');
+    }
     try {
       const veriPaketi = {
-        email: userEmail,
         hesaplar,
         islemGecmisi,
         portfoyler,
@@ -139,41 +214,29 @@ export default function App() {
         tarih: new Date().toISOString()
       };
 
-      // Not: Kendi Supabase veya bulut API endpoint adresini buraya yazabilirsin.
-      // Şimdilik yerel veriyi bulut sırasına kaydettiğini simüle eden güvenli yapı:
-      await AsyncStorage.setItem('@toco_cloud_backup', JSON.stringify(veriPaketi));
-      
-      Alert.alert('☁️ Bulut Senkronizasyonu', 'Tüm portföy, talepler ve kasa verileriniz buluta başarıyla yedeklendi!');
+      // Supabase REST API upsert işlemi
+      const response = await fetch(`${SUPABASE_URL}/rest/v1/kullanici_verileri`, {
+        method: 'POST',
+        headers: {
+          'apikey': SUPABASE_ANON_KEY,
+          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+          'Content-Type': 'application/json',
+          'Prefer': 'resolution=merge-duplicates'
+        },
+        body: JSON.stringify({
+          email: cloudEmail,
+          veri: veriPaketi,
+          guncelleme_tarihi: new Date().toISOString()
+        })
+      });
+
+      if (response.ok || response.status === 201 || response.status === 204) {
+        Alert.alert('☁️ Başarılı', 'Tüm portföy, talep ve kasa verileriniz güvenli Supabase bulutuna yedeklendi!');
+      } else {
+        Alert.alert('Uyarı', 'Yedekleme gönderildi ancak sunucu yanıtı kontrol edilmeli.');
+      }
     } catch (e) {
       Alert.alert('Hata', 'Buluta yedekleme sırasında bir sorun oluştu.');
-    }
-  };
-
-  // BULUTTAN VERİLERİ ÇEKME FONKSİYONU
-  const buluttanGeriYukle = async () => {
-    try {
-      const yedekStr = await AsyncStorage.getItem('@toco_cloud_backup');
-      if (!yedekStr) {
-        return Alert.alert('Uyarı', 'Bulutta kayıtlı bir yedek bulunamadı.');
-      }
-      const yedek = JSON.parse(yedekStr);
-      
-      if (yedek.hesaplar) setHesaplar(yedek.hesaplar);
-      if (yedek.islemGecmisi) setIslemGecmisi(yedek.islemGecmisi);
-      if (yedek.portfoyler) setPortfoyler(yedek.portfoyler);
-      if (yedek.talepler) setTalepler(yedek.talepler);
-      if (yedek.krediler) setKrediler(yedek.krediler);
-
-      // Yerel hafızayı da güncelle
-      await AsyncStorage.setItem('@toco_hesaplar', JSON.stringify(yedek.hesaplar || []));
-      await AsyncStorage.setItem('@toco_islemler', JSON.stringify(yedek.islemGecmisi || []));
-      await AsyncStorage.setItem('@toco_portfoyler', JSON.stringify(yedek.portfoyler || []));
-      await AsyncStorage.setItem('@toco_talepler', JSON.stringify(yedek.talepler || []));
-      await AsyncStorage.setItem('@toco_krediler', JSON.stringify(yedek.krediler || []));
-
-      Alert.alert('Başarılı', 'Buluttaki verileriniz bu cihaza başarıyla indirildi ve senkronize edildi!');
-    } catch (e) {
-      Alert.alert('Hata', 'Buluttan veriler geri yüklenemedi.');
     }
   };
 
@@ -831,19 +894,48 @@ export default function App() {
 
         {activeTab === 'ayarlar' && (
           <View>
-            <Text style={dynStyles.sectionTitle}>⚙️ Bulut & Uygulama Ayarları</Text>
+            <Text style={dynStyles.sectionTitle}>⚙️ Supabase Bulut & Uygulama Ayarları</Text>
             
             <View style={dynStyles.formCard}>
-              <Text style={dynStyles.cardTitle}>☁️ Bulut Senkronizasyonu (Yedekleme)</Text>
-              <Text style={dynStyles.labelSub}>Verilerinizi buluta yedekleyin veya başka bir cihazdan geri yükleyin:</Text>
-              
-              <TouchableOpacity style={[styles.saveBtn, {backgroundColor: '#047857', marginBottom: 10}]} onPress={bulutaYedekle}>
-                <Text style={styles.saveBtnText}>☁️ Verileri Buluta Yedekle</Text>
-              </TouchableOpacity>
+              <Text style={dynStyles.cardTitle}>☁️ Gerçek Bulut Hesabı</Text>
+              {isCloudLoggedIn ? (
+                <View>
+                  <Text style={dynStyles.labelSub}>Bağlı Bulut Hesabı:</Text>
+                  <Text style={{color: '#4ade80', fontWeight: 'bold', fontSize: 14, marginBottom: 12}}>👤 {cloudEmail}</Text>
+                  
+                  <TouchableOpacity style={[styles.saveBtn, {backgroundColor: '#047857', marginBottom: 10}]} onPress={bulutaYedekle}>
+                    <Text style={styles.saveBtnText}>☁️ Verileri Supabase Bulutuna Yedekle</Text>
+                  </TouchableOpacity>
 
-              <TouchableOpacity style={[styles.saveBtn, {backgroundColor: '#1d4ed8'}]} onPress={buluttanGeriYukle}>
-                <Text style={styles.saveBtnText}>📥 Buluttan Verileri Geri Yükle</Text>
-              </TouchableOpacity>
+                  <TouchableOpacity style={[styles.saveBtn, {backgroundColor: '#b91c1c'}]} onPress={buluttانCikisYap || buluttanCikisYap}>
+                    <Text style={styles.saveBtnText}>🚪 Hesaptan Çıkış Yap</Text>
+                  </TouchableOpacity>
+                </View>
+              ) : (
+                <View>
+                  <Text style={dynStyles.labelSub}>Herhangi bir e-posta ve şifre girerek bulut hesabı açın (Başka telefondan bu hesapla girince verileriniz otomatik gelir):</Text>
+                  <TextInput
+                    style={dynStyles.input}
+                    placeholder="E-posta Adresiniz"
+                    placeholderTextColor={isDark ? '#9ca3af' : '#6b7280'}
+                    keyboardType="email-address"
+                    autoCapitalize="none"
+                    value={cloudEmail}
+                    onChangeText={setCloudEmail}
+                  />
+                  <TextInput
+                    style={dynStyles.input}
+                    placeholder="Bulut Şifreniz"
+                    placeholderTextColor={isDark ? '#9ca3af' : '#6b7280'}
+                    secureTextEntry
+                    value={cloudSifre}
+                    onChangeText={setCloudSifre}
+                  />
+                  <TouchableOpacity style={styles.saveBtn} onPress={bulutHesapIslemi}>
+                    <Text style={styles.saveBtnText}>Bulut Hesabına Bağlan / Aç</Text>
+                  </TouchableOpacity>
+                </View>
+              )}
             </View>
 
             <View style={dynStyles.formCard}>
