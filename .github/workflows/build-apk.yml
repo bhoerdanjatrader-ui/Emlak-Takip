@@ -25,9 +25,8 @@ jobs:
       - name: Install dependencies with Yarn
         run: yarn install --no-lockfile
 
-      - name: Prebuild and Build APK Release
+      - name: Build APK Release
         run: |
-          yarn expo prebuild --platform android --clean
           cd android
           chmod +x gradlew
           ./gradlew assembleRelease
