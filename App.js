@@ -129,7 +129,7 @@ export default function App() {
     }
   };
 
-  const email ileGirisYap = async () => {
+  const emailIleGirisYap = async () => {
     if (!emailInput || !emailInput.includes('@')) {
       return Alert.alert('Hata', 'Lütfen geçerli bir e-posta adresi giriniz.');
     }
@@ -410,7 +410,6 @@ export default function App() {
 
   const dynStyles = getDynamicStyles(isDark);
 
-  // EĞER KULLANICI GİRİŞ YAPMADIYSA (E-POSTA VEYA GOOGLE GİRİŞ EKRANI)
   if (!userEmail) {
     return (
       <SafeAreaView style={dynStyles.lockContainer}>
@@ -440,7 +439,7 @@ export default function App() {
             value={emailInput}
             onChangeText={setEmailInput}
           />
-          <TouchableOpacity style={styles.saveBtn} onPress={email ileGirisYap}>
+          <TouchableOpacity style={styles.saveBtn} onPress={emailIleGirisYap}>
             <Text style={styles.saveBtnText}>E-posta ile Giriş Yap / Kaydol</Text>
           </TouchableOpacity>
         </View>
@@ -448,7 +447,6 @@ export default function App() {
     );
   }
 
-  // EĞER MAİL GİRİLMİŞ ANCAK KİLİT AÇILMAMIŞSA (PİN / PARMAK İZİ EKRANI)
   if (!isUnlocked) {
     return (
       <SafeAreaView style={dynStyles.lockContainer}>
@@ -490,7 +488,6 @@ export default function App() {
     );
   }
 
-  // ANA UYGULAMA EKRANI
   return (
     <SafeAreaView style={dynStyles.container}>
       <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} backgroundColor={isDark ? '#121214' : '#f3f4f6'} />
@@ -981,7 +978,7 @@ const styles = StyleSheet.create({
   bakiyeSubText: { color: '#e5e7eb', fontSize: 11, marginTop: 10 },
   lineChartContainer: { width: '100%', height: 50, marginVertical: 8, position: 'relative', justifyContent: 'center' },
   lineChartTrack: { width: '100%', height: 2, backgroundColor: 'rgba(255,255,255,0.3)', position: 'relative' },
-  lineChartPoint: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#ffffff', position: 'absolute' },
+  lineChartPoint: { width: '8', height: '8', borderRadius: 4, backgroundColor: '#ffffff', position: 'absolute' },
   chartTrendText: { color: '#ffffff', fontSize: 11, fontWeight: 'bold', textAlign: 'center', marginTop: 4 },
   summaryCardRow: { flexDirection: 'row', justifyContent: 'space-between', gap: 10 },
   summaryCardGelir: { flex: 1, backgroundColor: '#064e3b', padding: 14, borderRadius: 10, alignItems: 'center', borderWidth: 1, borderColor: '#047857' },
