@@ -515,14 +515,14 @@ export default function App() {
                 <View key={p.id} style={dynStyles.listItem}>
                   <View style={{flex: 1}}>
                     <View style={styles.listHeader}>
-                      <Text style={dynStyles.listTitle}>{p.baslik}</Text>
+                      <Text style={styles.listTitle}>{p.baslik}</Text>
                       <View style={{flexDirection: 'row', gap: 4}}>
                         <Text style={styles.listBadge}>{p.category || 'Konut'}</Text>
                         <Text style={styles.listBadgeTip}>{p.tip}</Text>
                       </View>
                     </View>
-                    <Text style={dynStyles.listSub}>📍 {p.konum} | 💰 {Number(p.fiyat || 0).toLocaleString()} TL</Text>
-                    {p.aciklama ? <Text style={dynStyles.listDesc}>{p.aciklama}</Text> : null}
+                    <Text style={styles.listSub}>📍 {p.konum} | 💰 {Number(p.fiyat || 0).toLocaleString()} TL</Text>
+                    {p.aciklama ? <Text style={styles.listDesc}>{p.aciklama}</Text> : null}
                   </View>
                   <View style={styles.actionColumn}>
                     <TouchableOpacity style={styles.iconBtnEdit} onPress={() => portfoyDuzenleBaslat(p)}>
