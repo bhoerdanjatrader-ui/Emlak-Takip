@@ -610,7 +610,7 @@ export default function App() {
                 <View key={talep.id} style={dynStyles.listItem}>
                   <View style={{flex: 1}}>
                     <View style={styles.listHeader}>
-                      <Text style={dynStyles.listTitle}>{talep.musteri}</Text>
+                      <Text style={styles.listTitle}>{talep.musteri}</Text>
                       <View style={{flexDirection: 'row', gap: 4}}>
                         <Text style={styles.listBadge}>{talep.category || 'Konut'}</Text>
                         <Text style={styles.listBadgeTip}>{talep.tip}</Text>
