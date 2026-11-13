@@ -25,9 +25,11 @@ jobs:
       - name: Install dependencies with Yarn
         run: yarn install --no-lockfile
 
+      - name: Generate Android Native Folder
+        run: yarn expo prebuild --platform android --clean
+
       - name: Build APK Release
         run: |
-          yarn expo run:android --variant release --no-bundler || true
           cd android
           chmod +x gradlew
           ./gradlew assembleRelease
